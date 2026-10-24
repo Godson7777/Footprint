@@ -39,7 +39,7 @@ Di simbol bursa (futures/saham dengan data trade asli), indikator otomatis memak
 | Column width | 90 px | Lebar kolom footprint (0 = ikuti candle MT5) |
 | Auto-fit price scale | true | Skala harga menyesuaikan kolom yang terlihat |
 | Min row height | 13 px | Baris digabung otomatis sampai setinggi ini |
-| Bars to calculate | 150 | Jumlah candle yang dihitung (makin banyak, makin berat) |
+| Max bars to calculate | 1000 | Batas candle yang dihitung. Candle di layar dimuat lebih dulu |
 | Row size in points | 0 (auto) | Ukuran tiap level harga. Auto ≈ 20 baris per candle |
 | Display mode | Split | Split / Delta / Volume / Profile |
 | Value Area % | 70 | |

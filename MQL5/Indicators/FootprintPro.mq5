@@ -55,7 +55,7 @@ enum ENUM_FP_THEME
 
 //--- inputs
 input group "Data"
-input int               InpBars          = 150;          // Bars to calculate
+input int               InpBars          = 1000;         // Max bars to calculate (visible bars load first)
 input int               InpRowPoints     = 0;            // Row size in points (0 = auto)
 input int               InpAutoRows      = 20;           // Auto row size: target rows per bar
 input ENUM_FP_SIDE      InpSide          = SIDE_AUTO;    // Buy/Sell detection
@@ -1144,6 +1144,14 @@ void OnTimer()
    uint t0 = GetTickCount();
 
    //--- history: newest first, in blocks, max ~40 ms per timer tick so the terminal stays responsive
+   //--- bars on screen first
+   for(int i = g_count - 2; i >= 0 && GetTickCount() - t0 < 40; i--)
+     {
+      if(g_bars[i].loaded || !g_bars[i].vis) continue;
+      if(LoadChunk(i)) changed = true;
+      else break;
+     }
+   //--- then the rest, newest first
    for(int i = g_count - 2; i >= 0 && GetTickCount() - t0 < 40; i--)
      {
       if(g_bars[i].loaded) continue;
