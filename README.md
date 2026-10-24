@@ -56,31 +56,35 @@ Di simbol bursa (futures/saham dengan data trade asli), indikator otomatis memak
 
 ---
 
-# Liquidity Heatmap (EA) untuk MT5
+# Liquidity Heatmap + Iceberg (EA) untuk MT5
 
-Heatmap likuiditas order book, mirip Orderbook Heatmap di OpenMarket. Datanya diambil dari order book publik **Hyperliquid**:
+Heatmap likuiditas order book **historis**, gaya OpenMarket, ditambah **deteksi iceberg** gaya DeepCharts. Datanya dari OpenMarket (order book Hyperliquid):
 - **XAUUSD** memakai `xyz:GOLD`
 - **NAS100 / USTEC / US100** memakai `xyz:XYZ100`
 
-Selisih harga ke broker dikoreksi otomatis.
+**EA ini hanya menampilkan data. Tidak ada satu pun fungsi trading di dalamnya.**
 
-**EA ini hanya menampilkan data. Tidak ada satu pun fungsi trading di dalamnya.** Bentuknya EA, bukan indikator, karena MT5 melarang indikator mengakses internet.
-
-## Cara kerja
-1. Setiap 2 detik, EA mengambil snapshot order book: 20 level bid dan 20 level ask, dikelompokkan per $1 untuk emas atau per $10 untuk Nasdaq.
-2. Offset dihitung otomatis: harga tengah broker dikurangi harga tengah Hyperliquid. Semua level digeser sebesar offset itu.
-3. Snapshot disusun dari waktu ke waktu dan diwarnai sesuai besarnya order: biru (kecil) → cyan → kuning → putih (sangat besar).
-4. Di kanan ada **ladder** order book saat ini. Level yang besarnya ≥ 3× median ditandai sebagai **BID WALL / ASK WALL** dengan garis kuning.
-5. Riwayat heatmap disimpan ke file, jadi tidak hilang saat MT5 ditutup.
+## Fitur
+- **Mengikuti sumbu waktu MT5.** Scroll ke belakang, dan heatmap periode itu otomatis diunduh lalu disimpan ke cache.
+- **Gaya OpenMarket:** setiap candle menampilkan garis-garis kecil per level harga. Warnanya ungu (kecil) → biru → hijau → kuning → putih (sangat besar).
+- **Walls:** level dengan ukuran di atas persentil 97% digambar kuning. Kalau bertahan beberapa candle, garisnya menyambung panjang.
+- **Iceberg ala DeepCharts:** gelembung muncul di level di mana volume yang ditransaksikan ≥ 2× order yang terlihat, sementara harga tetap tertahan. Hijau untuk pembeli tersembunyi di bid, magenta untuk penjual tersembunyi di ask. Angka di dalamnya adalah perkiraan ukuran yang tersembunyi.
+- **Strategy Tester:** membaca cache saja dan tidak pernah menampilkan data setelah waktu tester (tanpa look-ahead).
+- **Offset harga otomatis per candle:** harga tipikal broker dikurangi VWAP Hyperliquid, dihaluskan dengan median 7 candle.
 
 ## Instalasi
-1. Salin `MQL5/Experts/LiquidityHeatmap.mq5` ke folder `MQL5/Experts/`, lalu compile (F7).
-2. MT5: **Tools → Options → Expert Advisors** → centang **Allow WebRequest for listed URL** → tambahkan `https://api.hyperliquid.xyz`.
-3. Buka chart **XAUUSD M1** (heatmap paling jelas di M1–M5), lalu seret **LiquidityHeatmap** ke chart.
-4. Heatmap terisi seiring waktu, karena tiap 2 detik bertambah satu kolom snapshot.
+1. Salin `MQL5/Experts/LiquidityHeatmap.mq5` ke `MQL5/Experts/`, lalu compile (F7).
+2. Buat **agent token** OpenMarket di https://openmarket.xyz/chart/console/agents dengan akses **Read**. Simpan sendiri dan jangan dibagikan.
+3. MT5: **Tools → Options → Expert Advisors** → centang **Allow WebRequest for listed URL** → tambahkan `https://mcp.openmarket.xyz`.
+4. Seret **LiquidityHeatmap** ke chart XAUUSD (M1–H4), lalu tempel token di input **OpenMarket agent token**.
+5. EA mengunduh riwayat bertahap, satu permintaan tiap 7 detik karena batas rate. Status tampil di panel kiri atas.
 
-**Tips:** pakai di chart terpisah dari FootprintPro, atau set FootprintPro *Column width = 0*. Wide Mode FootprintPro memakai posisi kolom sendiri, jadi tidak sejajar dengan sumbu waktu heatmap.
+## Backtest
+- **Replay manual / scroll:** cukup scroll ke belakang. Data dimuat otomatis, sejauh batas riwayat paket OpenMarket kamu (Free ±30 hari, Plus ±1 tahun).
+- **Strategy Tester (visual mode):** jalankan EA di chart live dulu supaya cache terisi (*Bars to prefetch*, misalnya 2000). Setelah itu jalankan di Strategy Tester pada simbol dan timeframe yang sama. Cache dibaca dari folder Common.
 
 ## Catatan
-- Likuiditas Hyperliquid berasal dari trader kripto, bukan CME. Tembok besarnya bermakna sebagai zona, tapi ukurannya lebih kecil daripada pasar emas utama.
-- Gunakan sebagai **zona analisa**, bukan pemicu entry otomatis karena perbedaan kecepatan harga. Itu bisa dianggap latency arbitrage oleh prop firm.
+- Likuiditas Hyperliquid berasal dari trader kripto, bukan CME. Wall dan iceberg berarti di pasar itu, dan levelnya dipetakan ke harga broker lewat offset.
+- Iceberg di sini dihitung per candle dari data agregat (volume per harga dibanding ukuran book). Ini perkiraan kuantitatif, bukan deteksi tick-by-tick seperti DeepCharts.
+- Pakai sebagai **zona analisa**, bukan pemicu entry otomatis karena perbedaan kecepatan harga (aturan latency arbitrage prop firm).
+- Pakai di chart terpisah dari FootprintPro Wide Mode, atau set FootprintPro *Column width = 0*.
