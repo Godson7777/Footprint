@@ -68,16 +68,18 @@ input bool              InpShowHeader    = true;         // Show header panel
 
 input group "Display"
 input ENUM_FP_MODE      InpMode          = FP_SPLIT;     // Display mode
+input bool              InpFocus         = true;         // Focus mode: highlight imbalance / POC, dim the rest
+input bool              InpShowLegend    = true;         // Show legend
 input ENUM_FP_CELLCOLOR InpCellColor     = CELL_DELTA;   // Cell coloring (Delta/Volume modes)
-input int               InpColumnWidth   = 90;           // Column width in pixels (0 = follow MT5 bar spacing)
+input int               InpColumnWidth   = 130;          // Column width in pixels (0 = follow MT5 bar spacing)
 input bool              InpAutoFitPrice  = true;         // Auto-fit price scale to visible columns
-input int               InpMinRowPx      = 13;           // Min row height in pixels (rows merge to fit text)
+input int               InpMinRowPx      = 17;           // Min row height in pixels (rows merge to fit text)
 input double            InpBarWidth      = 0.85;         // Cell width when following MT5 bars (fraction)
 input bool              InpHideCandles   = true;         // Hide MT5 candles
 input bool              InpDrawCandle    = true;         // Draw thin candle next to footprint
 input string            InpFont          = "Consolas";   // Number font (monospaced)
 input string            InpLabelFont     = "Segoe UI";   // Label font
-input int               InpFontSize      = 8;            // Font size
+input int               InpFontSize      = 9;            // Font size
 input bool              InpAbbrev        = true;         // Abbreviate numbers (1.2k)
 input bool              InpHideZero      = true;         // Hide zero values
 
@@ -715,6 +717,12 @@ void Redraw()
                      g_canvas.FillRectangle(MathMax(0, x0), Y(zHi), xEnd, MathMin(Y(zLo), clipBottom), FPColor(zc, 40));
                      g_canvas.LineHorizontal(MathMax(0, x0), xEnd, Y(zHi), FPColor(zc, 90));
                      g_canvas.LineHorizontal(MathMax(0, x0), xEnd, MathMin(Y(zLo), clipBottom), FPColor(zc, 90));
+                     if(InpFocus && x0 + 4 < g_w)
+                       {
+                        g_canvas.FontSet(InpLabelFont, -(InpFontSize - 1) * 10, FW_BOLD);
+                        g_canvas.TextOut(MathMax(2, x0 + 4), Y(zHi) + 1, (side == 0 ? "BUY IMB x" : "SELL IMB x") + IntegerToString(run), FPColor(zc, 255), TA_LEFT | TA_TOP);
+                        g_canvas.FontSet(InpFont, -InpFontSize * 10, FW_NORMAL);
+                       }
                     }
                  }
                run = 0;
@@ -799,8 +807,17 @@ void Redraw()
                  {
                   int aB = (maxSide > 0) ? (int)(16 + 120 * bv / maxSide) : 16;
                   int aA = (maxSide > 0) ? (int)(16 + 120 * av / maxSide) : 16;
-                  g_canvas.FillRectangle(cLeft, yTop, mid - 1, yBot, FPColor(g_sell, aB));
-                  g_canvas.FillRectangle(mid + 1, yTop, cRight, yBot, FPColor(g_buy, aA));
+                  if(InpFocus)
+                    {
+                     aB = (maxSide > 0) ? (int)(10 + 45 * bv / maxSide) : 10;
+                     aA = (maxSide > 0) ? (int)(10 + 45 * av / maxSide) : 10;
+                     if(si) aB = 215;
+                     if(bi) aA = 215;
+                    }
+                  if(InpFocus && isPoc)
+                     g_canvas.FillRectangle(cLeft, yTop, cRight, yBot, FPColor(g_poc, 70));
+                  g_canvas.FillRectangle(cLeft, yTop, mid - 1, yBot, FPColor(si && InpFocus ? g_imbSell : g_sell, aB));
+                  g_canvas.FillRectangle(mid + 1, yTop, cRight, yBot, FPColor(bi && InpFocus ? g_imbBuy : g_buy, aA));
                   if(!showText)
                     {
                      if(bi) g_canvas.Rectangle(mid + 1, yTop, cRight, yBot, FPColor(g_imbBuy, 255));
@@ -812,12 +829,12 @@ void Redraw()
                      if(!(InpHideZero && bv == 0))
                        {
                         g_canvas.FontSet(InpFont, -InpFontSize * 10, (si || isPoc) ? FW_BOLD : FW_NORMAL);
-                        g_canvas.TextOut(mid - 4, ty, Fmt(bv), FPColor(si ? g_imbSell : g_text, 255), TA_RIGHT | TA_VCENTER);
+                        g_canvas.TextOut(mid - 4, ty, Fmt(bv), FPColor(InpFocus ? (si ? clrWhite : (isPoc ? g_poc : g_textDim)) : (si ? g_imbSell : g_text), 255), TA_RIGHT | TA_VCENTER);
                        }
                      if(!(InpHideZero && av == 0))
                        {
                         g_canvas.FontSet(InpFont, -InpFontSize * 10, (bi || isPoc) ? FW_BOLD : FW_NORMAL);
-                        g_canvas.TextOut(mid + 4, ty, Fmt(av), FPColor(bi ? g_imbBuy : g_text, 255), TA_LEFT | TA_VCENTER);
+                        g_canvas.TextOut(mid + 4, ty, Fmt(av), FPColor(InpFocus ? (bi ? clrWhite : (isPoc ? g_poc : g_textDim)) : (bi ? g_imbBuy : g_text), 255), TA_LEFT | TA_VCENTER);
                        }
                      g_canvas.FontSet(InpFont, -InpFontSize * 10, FW_NORMAL);
                     }
@@ -869,7 +886,7 @@ void Redraw()
             double pLo = DPrice(b, b.dPoc);
             int yT = Y(pLo + g_drs), yB = MathMin(Y(pLo), clipBottom);
             g_canvas.Rectangle(cLeft, yT, cRight, yB, FPColor(g_poc, 255));
-            if(wide) g_canvas.Rectangle(cLeft + 1, yT + 1, cRight - 1, yB - 1, FPColor(g_poc, 120));
+            g_canvas.Rectangle(cLeft + 1, yT + 1, cRight - 1, yB - 1, FPColor(g_poc, 200));
            }
 
          //--- Value Area
@@ -963,6 +980,29 @@ void Redraw()
       g_canvas.TextOut(bx0 + bw2 / 2, by0 + bh0 / 2, badge, FPColor(bc, 255), TA_CENTER | TA_VCENTER);
       g_canvas.FontSet(InpLabelFont, -InpFontSize * 10, FW_NORMAL);
       g_canvas.TextOut(px + 10, py + 8 + InpFontSize + 9, info, FPColor(g_textDim, 255), TA_LEFT | TA_TOP);
+      g_canvas.FontSet(InpFont, -InpFontSize * 10, FW_NORMAL);
+     }
+
+   //--- legend (under header)
+   if(InpShowLegend)
+     {
+      g_canvas.FontSet(InpLabelFont, -(InpFontSize - 1) * 10, FW_NORMAL);
+      string items[4] = {"Buy imbalance", "Sell imbalance", "POC", "Value Area"};
+      color  cols[4];
+      cols[0] = g_imbBuy; cols[1] = g_imbSell; cols[2] = g_poc; cols[3] = g_va;
+      int lw = 0;
+      for(int q = 0; q < 4; q++) lw = MathMax(lw, g_canvas.TextWidth(items[q]));
+      int lpw = lw + 34, lrh = InpFontSize + 7, lph = lrh * 4 + 8;
+      int lx = g_w - lpw - 8, ly = InpShowHeader ? 8 + (InpFontSize + 7) * 2 + 18 : 8;
+      g_canvas.FillRectangle(lx, ly, lx + lpw, ly + lph, FPColor(g_panel, 235));
+      g_canvas.Rectangle(lx, ly, lx + lpw, ly + lph, FPColor(g_border, 255));
+      for(int q = 0; q < 4; q++)
+        {
+         int yy = ly + 4 + q * lrh;
+         if(q < 3) g_canvas.FillRectangle(lx + 8, yy + 3, lx + 20, yy + lrh - 4, FPColor(cols[q], 230));
+         else      g_canvas.LineHorizontal(lx + 8, lx + 20, yy + lrh / 2, FPColor(cols[q], 255));
+         g_canvas.TextOut(lx + 26, yy + lrh / 2, items[q], FPColor(g_text, 255), TA_LEFT | TA_VCENTER);
+        }
       g_canvas.FontSet(InpFont, -InpFontSize * 10, FW_NORMAL);
      }
 

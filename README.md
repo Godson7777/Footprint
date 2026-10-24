@@ -36,12 +36,13 @@ Di simbol bursa (futures/saham dengan data trade asli), indikator otomatis memak
 ## Pengaturan utama
 | Pengaturan | Default | Keterangan |
 |---|---|---|
-| Column width | 90 px | Lebar kolom footprint (0 = ikuti candle MT5) |
+| Column width | 130 px | Lebar kolom footprint (0 = ikuti candle MT5) |
 | Auto-fit price scale | true | Skala harga menyesuaikan kolom yang terlihat |
-| Min row height | 13 px | Baris digabung otomatis sampai setinggi ini |
+| Min row height | 17 px | Baris digabung otomatis sampai setinggi ini |
 | Max bars to calculate | 1000 | Batas candle yang dihitung. Candle di layar dimuat lebih dulu |
 | Row size in points | 0 (auto) | Ukuran tiap level harga. Auto ≈ 20 baris per candle |
 | Display mode | Split | Split / Delta / Volume / Profile |
+| Focus mode | true | Imbalance dan POC menonjol, sel lain diredupkan |
 | Value Area % | 70 | |
 | Imbalance ratio | 3.0 | |
 | Stacked imbalance | 3 | |
