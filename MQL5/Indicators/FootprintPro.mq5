@@ -131,6 +131,7 @@ public:
    int               pocRow, vahRow, valRow;
    bool              loaded;
    int               retries;
+   long              tickVol;
    //--- display (merged rows, rebuilt each redraw)
    int               dBase, dRows, dPoc, dVah, dVal, dX;
    bool              vis;
@@ -141,7 +142,7 @@ public:
      {
       time=0; open=high=low=close=0; baseRow=0; rows=0;
       delta=volume=maxDelta=minDelta=0;
-      pocRow=vahRow=valRow=-1; loaded=false; retries=0;
+      pocRow=vahRow=valRow=-1; loaded=false; retries=0; tickVol=0;
       dBase=dRows=dX=0; dPoc=dVah=dVal=-1; vis=false;
      }
    double            DTotal(const int d) { return dBid[d]+dAsk[d]; }
@@ -315,26 +316,58 @@ void ClearBars()
 //+------------------------------------------------------------------+
 //| Build one bar from ticks                                         |
 //+------------------------------------------------------------------+
+bool BuildFromTicks(const int idx, const MqlTick &ticks[], const int s0, const int e0);
+
+//--- live bar: fetch its ticks and build
 bool BuildBar(const int idx)
   {
    CFootBar *b = g_bars[idx];
    ulong from = (ulong)b.time * 1000;
    ulong to   = from + (ulong)PeriodSeconds(_Period) * 1000 - 1;
+   MqlTick ticks[];
+   int n = CopyTicksRange(_Symbol, ticks, g_useFlags ? COPY_TICKS_TRADE : COPY_TICKS_INFO, from, to);
+   if(n <= 0) return false;
+   return BuildFromTicks(idx, ticks, 0, n);
+  }
 
+//--- history: fetch one block of up to 24 consecutive unloaded bars with a single tick request
+bool LoadChunk(const int newest)
+  {
+   int oldest = newest;
+   while(oldest - 1 >= 0 && !g_bars[oldest - 1].loaded && newest - oldest < 23) oldest--;
+   ulong from = (ulong)g_bars[oldest].time * 1000;
+   ulong to   = (ulong)g_bars[newest].time * 1000 + (ulong)PeriodSeconds(_Period) * 1000 - 1;
    MqlTick ticks[];
    int n = CopyTicksRange(_Symbol, ticks, g_useFlags ? COPY_TICKS_TRADE : COPY_TICKS_INFO, from, to);
    if(n <= 0)
      {
-      b.retries++;
-      // after a few tries treat as empty (no tick history for this bar)
-      if(b.retries >= 5)
+      // history still downloading: retry on a later timer tick (never give up while the bar has volume)
+      for(int i = oldest; i <= newest; i++)
         {
-         ArrayResize(b.bid, 0); ArrayResize(b.ask, 0);
-         b.rows = 0; b.loaded = true;
+         g_bars[i].retries++;
+         if(g_bars[i].tickVol == 0 || g_bars[i].retries > 1200) { g_bars[i].rows = 0; g_bars[i].loaded = true; }
         }
       return false;
      }
+   int k = 0;
+   for(int i = oldest; i <= newest; i++)
+     {
+      ulong bStart = (ulong)g_bars[i].time * 1000;
+      ulong bEnd   = bStart + (ulong)PeriodSeconds(_Period) * 1000;
+      if(i < newest) bEnd = MathMin(bEnd, (ulong)g_bars[i + 1].time * 1000);
+      while(k < n && (ulong)ticks[k].time_msc < bStart) k++;
+      int st = k;
+      while(k < n && (ulong)ticks[k].time_msc < bEnd) k++;
+      if(k > st) BuildFromTicks(i, ticks, st, k);
+      else { g_bars[i].rows = 0; g_bars[i].loaded = true; }
+     }
+   return true;
+  }
 
+bool BuildFromTicks(const int idx, const MqlTick &ticks[], const int s0, const int e0)
+  {
+   CFootBar *b = g_bars[idx];
+   int n = e0 - s0;
    //--- pass 1: classify ticks
    double prices[];
    double vols[];
@@ -345,7 +378,7 @@ bool BuildBar(const int idx)
    int    lastDir   = 1;
    double pMin = DBL_MAX, pMax = -DBL_MAX;
 
-   for(int i = 0; i < n; i++)
+   for(int i = s0; i < e0; i++)
      {
       double price, vol;
       bool   buy;
@@ -1013,7 +1046,7 @@ int OnInit()
    if(InpHover) ChartSetInteger(0, CHART_EVENT_MOUSE_MOVE, true);
 
    g_rs = 0;
-   EventSetMillisecondTimer(250);
+   EventSetMillisecondTimer(50);
    IndicatorSetString(INDICATOR_SHORTNAME, "FootprintPro");
    if(!g_useFlags)
       Print("FootprintPro: ", _Symbol, " has no exchange trade data. Buy/Sell is estimated from tick direction; volume = tick count.");
@@ -1084,7 +1117,7 @@ int OnCalculate(const int rates_total,
       if(g_count > 0 && time[i] <= g_bars[g_count - 1].time) continue;
       if(g_count > 0) g_bars[g_count - 1].loaded = false;   // previous live bar: rebuild once as closed
       CFootBar *b = new CFootBar;
-      b.time = time[i]; b.open = open[i]; b.high = high[i]; b.low = low[i]; b.close = close[i];
+      b.time = time[i]; b.tickVol = tick_volume[i]; b.open = open[i]; b.high = high[i]; b.low = low[i]; b.close = close[i];
       ArrayResize(g_bars, g_count + 1);
       g_bars[g_count] = b;
       g_count++;
@@ -1108,30 +1141,34 @@ void OnTimer()
   {
    if(g_count == 0 || g_rs <= 0) return;
    bool changed = false;
+   uint t0 = GetTickCount();
 
-   //--- historical bars not loaded yet (a few per tick to stay responsive)
-   int budget = 25;
-   for(int i = g_count - 2; i >= 0 && budget > 0; i--)
+   //--- history: newest first, in blocks, max ~40 ms per timer tick so the terminal stays responsive
+   for(int i = g_count - 2; i >= 0 && GetTickCount() - t0 < 40; i--)
      {
       if(g_bars[i].loaded) continue;
-      BuildBar(i);
-      budget--;
-      changed = true;
+      if(LoadChunk(i)) changed = true;
+      else break;                      // ticks still downloading, try again next tick
      }
 
-   //--- live bar
-   if(g_liveDirty)
+   //--- live bar: rebuild at most twice a second
+   static uint lastLive = 0;
+   if(g_liveDirty && GetTickCount() - lastLive >= 500)
      {
       BuildBar(g_count - 1);
       g_bars[g_count - 1].loaded = true;
       g_liveDirty = false;
+      lastLive = GetTickCount();
       changed = true;
      }
 
-   if(changed || g_needRedraw)
+   //--- redraw at most ~10 times a second
+   static uint lastDraw = 0;
+   if((changed || g_needRedraw) && GetTickCount() - lastDraw >= 100)
      {
       Redraw();
       g_needRedraw = false;
+      lastDraw = GetTickCount();
       ChartRedraw();
      }
   }
@@ -1144,8 +1181,6 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
    if(id == CHARTEVENT_CHART_CHANGE)
      {
       g_needRedraw = true;
-      Redraw();
-      ChartRedraw();
      }
    else if(id == CHARTEVENT_MOUSE_MOVE && InpHover)
      {
