@@ -246,7 +246,7 @@ string Fmt(const double v)
    return DoubleToString(v, (a < 10.0) ? 2 : 1);
   }
 
-uint ARGB(const color c, const int alpha)
+uint FPColor(const color c, const int alpha)
   {
    return ColorToARGB(c, (uchar)MathMax(0, MathMin(255, alpha)));
   }
@@ -508,7 +508,7 @@ void Redraw()
                      if(xEnd > 0)
                        {
                         color zc = (side == 0) ? g_imbBuy : g_imbSell;
-                        g_canvas.FillRectangle(x0, Y(zHi), xEnd, Y(zLo), ARGB(zc, 45));
+                        g_canvas.FillRectangle(x0, Y(zHi), xEnd, Y(zLo), FPColor(zc, 45));
                        }
                     }
                   run = 0;
@@ -527,13 +527,13 @@ void Redraw()
                if(c.low <= pp && c.high >= pp) { touched = true; break; }
               }
             if(!touched && xEnd > x0)
-               DashH(x0 + cw / 2, xEnd, Y(pp), ARGB(g_poc, 160));
+               DashH(x0 + cw / 2, xEnd, Y(pp), FPColor(g_poc, 160));
            }
         }
      }
 
    int clipBottom = InpStats ? statsTop - 1 : g_h;
-   if(InpStats) g_canvas.FillRectangle(0, statsTop, g_w - 1, g_h - 1, ARGB(g_panel, 235));
+   if(InpStats) g_canvas.FillRectangle(0, statsTop, g_w - 1, g_h - 1, FPColor(g_panel, 235));
 
    //--- footprint cells
    for(int i = 0; i < g_count; i++)
@@ -553,9 +553,9 @@ void Redraw()
         {
          color cc = (b.close >= b.open) ? g_buy : g_sell;
          int cx = left + candleW / 2;
-         g_canvas.LineVertical(cx, Y(b.high), MathMin(Y(b.low), clipBottom), ARGB(cc, 230));
+         g_canvas.LineVertical(cx, Y(b.high), MathMin(Y(b.low), clipBottom), FPColor(cc, 230));
          int yo = MathMin(Y(b.open), clipBottom), yc = MathMin(Y(b.close), clipBottom);
-         g_canvas.FillRectangle(left, MathMin(yo, yc), left + candleW - 1, MathMax(MathMax(yo, yc), MathMin(yo, yc) + 1), ARGB(cc, 255));
+         g_canvas.FillRectangle(left, MathMin(yo, yc), left + candleW - 1, MathMax(MathMax(yo, yc), MathMin(yo, yc) + 1), FPColor(cc, 255));
         }
 
       if(!b.loaded || b.rows == 0) continue;
@@ -595,13 +595,13 @@ void Redraw()
               {
                int aB = (maxSide > 0) ? (int)(18 + 130 * bv / maxSide) : 18;
                int aA = (maxSide > 0) ? (int)(18 + 130 * av / maxSide) : 18;
-               g_canvas.FillRectangle(cLeft, yTop, mid - 1, yBot, ARGB(g_sell, aB));
-               g_canvas.FillRectangle(mid, yTop, cRight, yBot, ARGB(g_buy, aA));
-               g_canvas.LineVertical(mid, yTop, yBot, ARGB(g_chartBg, 160));
+               g_canvas.FillRectangle(cLeft, yTop, mid - 1, yBot, FPColor(g_sell, aB));
+               g_canvas.FillRectangle(mid, yTop, cRight, yBot, FPColor(g_buy, aA));
+               g_canvas.LineVertical(mid, yTop, yBot, FPColor(g_chartBg, 160));
                if(InpImbalance && !showText)
                  {
-                  if(BuyImb(b, r))  g_canvas.Rectangle(mid, yTop, cRight, yBot, ARGB(g_imbBuy, 255));
-                  if(SellImb(b, r)) g_canvas.Rectangle(cLeft, yTop, mid - 1, yBot, ARGB(g_imbSell, 255));
+                  if(BuyImb(b, r))  g_canvas.Rectangle(mid, yTop, cRight, yBot, FPColor(g_imbBuy, 255));
+                  if(SellImb(b, r)) g_canvas.Rectangle(cLeft, yTop, mid - 1, yBot, FPColor(g_imbSell, 255));
                  }
                if(showText)
                  {
@@ -612,12 +612,12 @@ void Redraw()
                   if(!(InpHideZero && bv == 0))
                     {
                      g_canvas.FontSet(InpFont, -InpFontSize * 10, (si || isPoc) ? FW_BOLD : FW_NORMAL);
-                     g_canvas.TextOut(mid - 2, ty, Fmt(bv), ARGB(si ? g_imbSell : g_text, 255), TA_RIGHT | TA_VCENTER);
+                     g_canvas.TextOut(mid - 2, ty, Fmt(bv), FPColor(si ? g_imbSell : g_text, 255), TA_RIGHT | TA_VCENTER);
                     }
                   if(!(InpHideZero && av == 0))
                     {
                      g_canvas.FontSet(InpFont, -InpFontSize * 10, (bi || isPoc) ? FW_BOLD : FW_NORMAL);
-                     g_canvas.TextOut(mid + 2, ty, Fmt(av), ARGB(bi ? g_imbBuy : g_text, 255), TA_LEFT | TA_VCENTER);
+                     g_canvas.TextOut(mid + 2, ty, Fmt(av), FPColor(bi ? g_imbBuy : g_text, 255), TA_LEFT | TA_VCENTER);
                     }
                   g_canvas.FontSet(InpFont, -InpFontSize * 10, FW_NORMAL);
                  }
@@ -637,17 +637,17 @@ void Redraw()
                   fc = g_neutral;
                   al = (int)(18 + 140 * tv / maxTot);
                  }
-               g_canvas.FillRectangle(cLeft, yTop, cRight, yBot, ARGB(fc, al));
+               g_canvas.FillRectangle(cLeft, yTop, cRight, yBot, FPColor(fc, al));
                if(InpImbalance)
                  {
-                  if(BuyImb(b, r))       g_canvas.Rectangle(cLeft, yTop, cRight, yBot, ARGB(g_imbBuy, 255));
-                  else if(SellImb(b, r)) g_canvas.Rectangle(cLeft, yTop, cRight, yBot, ARGB(g_imbSell, 255));
+                  if(BuyImb(b, r))       g_canvas.Rectangle(cLeft, yTop, cRight, yBot, FPColor(g_imbBuy, 255));
+                  else if(SellImb(b, r)) g_canvas.Rectangle(cLeft, yTop, cRight, yBot, FPColor(g_imbSell, 255));
                  }
                if(showText)
                  {
                   double v = (InpMode == FP_DELTA) ? dv : tv;
                   if(!(InpHideZero && v == 0))
-                     g_canvas.TextOut((cLeft + cRight) / 2, (yTop + yBot) / 2, Fmt(v), ARGB(g_text, 255), TA_CENTER | TA_VCENTER);
+                     g_canvas.TextOut((cLeft + cRight) / 2, (yTop + yBot) / 2, Fmt(v), FPColor(g_text, 255), TA_CENTER | TA_VCENTER);
                  }
                break;
               }
@@ -655,8 +655,8 @@ void Redraw()
               {
                int len  = (int)MathRound((cellW - 1) * tv / maxTot);
                int lenS = (tv > 0) ? (int)MathRound(len * bv / tv) : 0;
-               if(lenS > 0) g_canvas.FillRectangle(cLeft, yTop, cLeft + lenS - 1, yBot, ARGB(g_sell, 200));
-               if(len > lenS) g_canvas.FillRectangle(cLeft + lenS, yTop, cLeft + len - 1, yBot, ARGB(g_buy, 200));
+               if(lenS > 0) g_canvas.FillRectangle(cLeft, yTop, cLeft + lenS - 1, yBot, FPColor(g_sell, 200));
+               if(len > lenS) g_canvas.FillRectangle(cLeft + lenS, yTop, cLeft + len - 1, yBot, FPColor(g_buy, 200));
                break;
               }
            }
@@ -666,7 +666,7 @@ void Redraw()
       if(InpShowPOC && b.pocRow >= 0)
         {
          double pLo = b.RowPrice(b.pocRow, g_rs);
-         g_canvas.Rectangle(cLeft, Y(pLo + g_rs), cRight, Y(pLo) - 1, ARGB(g_poc, 255));
+         g_canvas.Rectangle(cLeft, Y(pLo + g_rs), cRight, Y(pLo) - 1, FPColor(g_poc, 255));
         }
 
       //--- Value Area lines
@@ -674,9 +674,9 @@ void Redraw()
         {
          int yH = Y(b.RowPrice(b.vahRow, g_rs) + g_rs);
          int yL = Y(b.RowPrice(b.valRow, g_rs)) - 1;
-         g_canvas.LineHorizontal(cLeft - 2, cRight + 2, yH, ARGB(g_va, 220));
-         g_canvas.LineHorizontal(cLeft - 2, cRight + 2, yL, ARGB(g_va, 220));
-         g_canvas.LineVertical(cRight + 1, yH, yL, ARGB(g_va, 120));
+         g_canvas.LineHorizontal(cLeft - 2, cRight + 2, yH, FPColor(g_va, 220));
+         g_canvas.LineHorizontal(cLeft - 2, cRight + 2, yL, FPColor(g_va, 220));
+         g_canvas.LineVertical(cRight + 1, yH, yL, FPColor(g_va, 120));
         }
 
       //--- Unfinished auction (both sides traded at the extreme)
@@ -686,12 +686,12 @@ void Redraw()
          if(b.bid[top] > 0 && b.ask[top] > 0)
            {
             int yy = Y(b.RowPrice(top, g_rs) + g_rs) - 2;
-            g_canvas.LineHorizontal(cLeft, cRight + cw / 2, yy, ARGB(g_unf, 220));
+            g_canvas.LineHorizontal(cLeft, cRight + cw / 2, yy, FPColor(g_unf, 220));
            }
          if(b.bid[0] > 0 && b.ask[0] > 0)
            {
             int yy = Y(b.RowPrice(0, g_rs)) + 1;
-            g_canvas.LineHorizontal(cLeft, cRight + cw / 2, yy, ARGB(g_unf, 220));
+            g_canvas.LineHorizontal(cLeft, cRight + cw / 2, yy, FPColor(g_unf, 220));
            }
         }
 
@@ -706,8 +706,8 @@ void Redraw()
             int yT = statsTop + s * statsRowH;
             color sc = (s == 3) ? g_neutral : ((vals[s] >= 0) ? g_buy : g_sell);
             int al = (s == 3) ? 40 : (int)(30 + 150 * MathMin(1.0, MathAbs(vals[s]) / ref));
-            g_canvas.FillRectangle(left, yT + 1, left + cw - 2, yT + statsRowH - 1, ARGB(sc, al));
-            g_canvas.TextOut(x, yT + statsRowH / 2, Fmt(vals[s]), ARGB(g_text, 255), TA_CENTER | TA_VCENTER);
+            g_canvas.FillRectangle(left, yT + 1, left + cw - 2, yT + statsRowH - 1, FPColor(sc, al));
+            g_canvas.TextOut(x, yT + statsRowH / 2, Fmt(vals[s]), FPColor(g_text, 255), TA_CENTER | TA_VCENTER);
            }
         }
      }
@@ -716,16 +716,16 @@ void Redraw()
    if(InpStats)
      {
       string labels[4] = {"DELTA", "MAX DELTA", "MIN DELTA", "VOLUME"};
-      g_canvas.FillRectangle(0, statsTop, g_w - 1, statsTop, ARGB(g_border, 255));
+      g_canvas.FillRectangle(0, statsTop, g_w - 1, statsTop, FPColor(g_border, 255));
       g_canvas.FontSet(InpLabelFont, -InpFontSize * 10, FW_SEMIBOLD);
       for(int s = 0; s < statsRows; s++)
         {
          int yT = statsTop + s * statsRowH;
-         if(s > 0) g_canvas.LineHorizontal(0, g_w - 1, yT, ARGB(g_border, 120));
-         g_canvas.FillRectangle(0, yT + 1, 64, yT + statsRowH - 1, ARGB(g_panel, 245));
-         g_canvas.TextOut(6, yT + statsRowH / 2, labels[s], ARGB(g_textDim, 255), TA_LEFT | TA_VCENTER);
+         if(s > 0) g_canvas.LineHorizontal(0, g_w - 1, yT, FPColor(g_border, 120));
+         g_canvas.FillRectangle(0, yT + 1, 64, yT + statsRowH - 1, FPColor(g_panel, 245));
+         g_canvas.TextOut(6, yT + statsRowH / 2, labels[s], FPColor(g_textDim, 255), TA_LEFT | TA_VCENTER);
         }
-      g_canvas.LineVertical(64, statsTop, g_h - 1, ARGB(g_border, 255));
+      g_canvas.LineVertical(64, statsTop, g_h - 1, FPColor(g_border, 255));
       g_canvas.FontSet(InpFont, -InpFontSize * 10, FW_NORMAL);
      }
 
@@ -744,20 +744,20 @@ void Redraw()
       int pw = MathMax(tw + bw2 + 10, iw) + 20;
       int ph = (InpFontSize + 7) * 2 + 10;
       int px = g_w - pw - 8, py = 8;
-      g_canvas.FillRectangle(px, py, px + pw, py + ph, ARGB(g_panel, 235));
-      g_canvas.Rectangle(px, py, px + pw, py + ph, ARGB(g_border, 255));
-      g_canvas.FillRectangle(px, py, px + 2, py + ph, ARGB(g_useFlags ? g_live : g_estimate, 255));
+      g_canvas.FillRectangle(px, py, px + pw, py + ph, FPColor(g_panel, 235));
+      g_canvas.Rectangle(px, py, px + pw, py + ph, FPColor(g_border, 255));
+      g_canvas.FillRectangle(px, py, px + 2, py + ph, FPColor(g_useFlags ? g_live : g_estimate, 255));
       g_canvas.FontSet(InpLabelFont, -(InpFontSize + 1) * 10, FW_BOLD);
-      g_canvas.TextOut(px + 10, py + 6, title, ARGB(g_text, 255), TA_LEFT | TA_TOP);
+      g_canvas.TextOut(px + 10, py + 6, title, FPColor(g_text, 255), TA_LEFT | TA_TOP);
       int bx0 = px + 10 + tw + 10, by0 = py + 6;
       int bh0 = InpFontSize + 6;
       color bc = g_useFlags ? g_live : g_estimate;
-      g_canvas.FillRectangle(bx0, by0, bx0 + bw2, by0 + bh0, ARGB(bc, 50));
-      g_canvas.Rectangle(bx0, by0, bx0 + bw2, by0 + bh0, ARGB(bc, 255));
+      g_canvas.FillRectangle(bx0, by0, bx0 + bw2, by0 + bh0, FPColor(bc, 50));
+      g_canvas.Rectangle(bx0, by0, bx0 + bw2, by0 + bh0, FPColor(bc, 255));
       g_canvas.FontSet(InpLabelFont, -(InpFontSize - 1) * 10, FW_BOLD);
-      g_canvas.TextOut(bx0 + bw2 / 2, by0 + bh0 / 2, badge, ARGB(bc, 255), TA_CENTER | TA_VCENTER);
+      g_canvas.TextOut(bx0 + bw2 / 2, by0 + bh0 / 2, badge, FPColor(bc, 255), TA_CENTER | TA_VCENTER);
       g_canvas.FontSet(InpLabelFont, -InpFontSize * 10, FW_NORMAL);
-      g_canvas.TextOut(px + 10, py + 8 + InpFontSize + 9, info, ARGB(g_textDim, 255), TA_LEFT | TA_TOP);
+      g_canvas.TextOut(px + 10, py + 8 + InpFontSize + 9, info, FPColor(g_textDim, 255), TA_LEFT | TA_TOP);
       g_canvas.FontSet(InpFont, -InpFontSize * 10, FW_NORMAL);
      }
 
@@ -782,10 +782,10 @@ void Redraw()
       int bx = g_mouseX + 16, by = g_mouseY + 16;
       if(bx + bw > g_w) bx = g_mouseX - bw - 16;
       if(by + bh > g_h) by = g_mouseY - bh - 16;
-      g_canvas.FillRectangle(bx, by, bx + bw, by + bh, ARGB(g_panel, 245));
-      g_canvas.Rectangle(bx, by, bx + bw, by + bh, ARGB(g_border, 255));
+      g_canvas.FillRectangle(bx, by, bx + bw, by + bh, FPColor(g_panel, 245));
+      g_canvas.Rectangle(bx, by, bx + bw, by + bh, FPColor(g_border, 255));
       for(int k = 0; k < 7; k++)
-         g_canvas.TextOut(bx + 6, by + 4 + k * lh, lines[k], ARGB(g_text, 255), TA_LEFT | TA_TOP);
+         g_canvas.TextOut(bx + 6, by + 4 + k * lh, lines[k], FPColor(g_text, 255), TA_LEFT | TA_TOP);
      }
 
    g_canvas.Update(false);
