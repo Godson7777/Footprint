@@ -69,12 +69,15 @@ input bool              InpShowHeader    = true;         // Show header panel
 input group "Display"
 input ENUM_FP_MODE      InpMode          = FP_SPLIT;     // Display mode
 input ENUM_FP_CELLCOLOR InpCellColor     = CELL_DELTA;   // Cell coloring (Delta/Volume modes)
-input double            InpBarWidth      = 0.85;         // Cell width (fraction of bar spacing)
+input int               InpColumnWidth   = 90;           // Column width in pixels (0 = follow MT5 bar spacing)
+input bool              InpAutoFitPrice  = true;         // Auto-fit price scale to visible columns
+input int               InpMinRowPx      = 13;           // Min row height in pixels (rows merge to fit text)
+input double            InpBarWidth      = 0.85;         // Cell width when following MT5 bars (fraction)
 input bool              InpHideCandles   = true;         // Hide MT5 candles
 input bool              InpDrawCandle    = true;         // Draw thin candle next to footprint
 input string            InpFont          = "Consolas";   // Number font (monospaced)
 input string            InpLabelFont     = "Segoe UI";   // Label font
-input int               InpFontSize      = 7;            // Font size
+input int               InpFontSize      = 8;            // Font size
 input bool              InpAbbrev        = true;         // Abbreviate numbers (1.2k)
 input bool              InpHideZero      = true;         // Hide zero values
 
@@ -128,13 +131,20 @@ public:
    int               pocRow, vahRow, valRow;
    bool              loaded;
    int               retries;
+   //--- display (merged rows, rebuilt each redraw)
+   int               dBase, dRows, dPoc, dVah, dVal, dX;
+   bool              vis;
+   double            dBid[];
+   double            dAsk[];
 
                      CFootBar(void)
      {
       time=0; open=high=low=close=0; baseRow=0; rows=0;
       delta=volume=maxDelta=minDelta=0;
       pocRow=vahRow=valRow=-1; loaded=false; retries=0;
+      dBase=dRows=dX=0; dPoc=dVah=dVal=-1; vis=false;
      }
+   double            DTotal(const int d) { return dBid[d]+dAsk[d]; }
    double            Total(const int r) { return bid[r]+ask[r]; }
    double            RowPrice(const int r, const double rs) { return (baseRow+r)*rs; }
   };
@@ -192,6 +202,36 @@ void ApplyTheme()
       g_imbBuy = InpImbBuyColor; g_imbSell = InpImbSellColor; g_unf = InpUnfinishedClr;
       g_panel = InpPanelColor; g_border = InpNeutralColor;
       g_estimate = clrOrange; g_live = InpBuyColor;
+     }
+  }
+
+//--- chart options changed while the indicator runs (restored on removal)
+long g_savedOpt[4];
+bool g_optSaved = false;
+
+void SetChartOptions(const bool apply)
+  {
+   if(apply)
+     {
+      g_savedOpt[0] = ChartGetInteger(0, CHART_SHOW_VOLUMES);
+      g_savedOpt[1] = ChartGetInteger(0, CHART_SHOW_DATE_SCALE);
+      g_savedOpt[2] = ChartGetInteger(0, CHART_SHOW_GRID);
+      g_savedOpt[3] = ChartGetInteger(0, CHART_SCALEFIX);
+      g_optSaved = true;
+      ChartSetInteger(0, CHART_SHOW_VOLUMES, CHART_VOLUME_HIDE);
+      if(InpColumnWidth > 0)
+        {
+         ChartSetInteger(0, CHART_SHOW_DATE_SCALE, false);   // MT5 time axis does not match wide columns
+         ChartSetInteger(0, CHART_SHOW_GRID, false);
+        }
+     }
+   else if(g_optSaved)
+     {
+      ChartSetInteger(0, CHART_SHOW_VOLUMES,    g_savedOpt[0]);
+      ChartSetInteger(0, CHART_SHOW_DATE_SCALE, g_savedOpt[1]);
+      ChartSetInteger(0, CHART_SHOW_GRID,       g_savedOpt[2]);
+      ChartSetInteger(0, CHART_SCALEFIX,        g_savedOpt[3]);
+      g_optSaved = false;
      }
   }
 
@@ -402,34 +442,21 @@ bool BuildBar(const int idx)
   }
 
 //+------------------------------------------------------------------+
-//| Imbalance tests (diagonal: ask[r] vs bid[r-1], bid[r] vs ask[r+1])|
-//+------------------------------------------------------------------+
-bool BuyImb(CFootBar *b, const int r)
-  {
-   if(r < 1 || b.ask[r] < InpImbMinVol) return false;
-   double other = b.bid[r-1];
-   if(other <= 0) return true;
-   return b.ask[r] >= InpImbRatio * other;
-  }
-
-bool SellImb(CFootBar *b, const int r)
-  {
-   if(r >= b.rows - 1 || b.bid[r] < InpImbMinVol) return false;
-   double other = b.ask[r+1];
-   if(other <= 0) return true;
-   return b.bid[r] >= InpImbRatio * other;
-  }
-
-//+------------------------------------------------------------------+
-//| Drawing helpers                                                  |
+//| Display state                                                    |
 //+------------------------------------------------------------------+
 int    g_w, g_h;
 double g_pmax, g_pmin;
+int    g_k   = 1;      // base rows merged into one display row
+double g_drs = 0;      // display row size (price)
+int    g_colW = 0;     // column width in pixels
+bool   g_fitBusy = false;
 
 int Y(const double price)
   {
    return (int)MathRound((g_pmax - price) / (g_pmax - g_pmin) * g_h);
   }
+
+double DPrice(CFootBar *b, const int d) { return (b.dBase + d) * g_drs; }
 
 void DashH(const int x1, const int x2, const int y, const uint clr)
   {
@@ -437,10 +464,140 @@ void DashH(const int x1, const int x2, const int y, const uint clr)
       g_canvas.LineHorizontal(x, MathMin(x + 3, x2), y, clr);
   }
 
-bool BarX(CFootBar *b, int &x)
+int NiceInt(const int v)
   {
-   int y;
-   return ChartTimePriceToXY(0, 0, b.time, b.close, x, y);
+   if(v <= 1) return 1;
+   int base = 1;
+   while(base <= 100000)
+     {
+      if(v <= base)     return base;
+      if(v <= base * 2) return base * 2;
+      if(base >= 10 && v <= base * 25 / 10) return base * 25 / 10;
+      if(v <= base * 5) return base * 5;
+      base *= 10;
+     }
+   return v;
+  }
+
+//--- merge base rows into display rows and compute POC / Value Area on them
+void BuildDisplay(CFootBar *b)
+  {
+   b.dRows = 0; b.dPoc = b.dVah = b.dVal = -1;
+   if(!b.loaded || b.rows == 0) return;
+   b.dBase = b.baseRow / g_k;
+   int top = (b.baseRow + b.rows - 1) / g_k;
+   b.dRows = top - b.dBase + 1;
+   ArrayResize(b.dBid, b.dRows); ArrayResize(b.dAsk, b.dRows);
+   ArrayInitialize(b.dBid, 0);   ArrayInitialize(b.dAsk, 0);
+   for(int r = 0; r < b.rows; r++)
+     {
+      int d = (b.baseRow + r) / g_k - b.dBase;
+      b.dBid[d] += b.bid[r];
+      b.dAsk[d] += b.ask[r];
+     }
+   double best = -1, tot = 0;
+   for(int d = 0; d < b.dRows; d++)
+     {
+      double t = b.DTotal(d);
+      tot += t;
+      if(t > best) { best = t; b.dPoc = d; }
+     }
+   b.dVah = b.dVal = b.dPoc;
+   if(tot <= 0) return;
+   double target = tot * InpVAPercent / 100.0;
+   double acc = b.DTotal(b.dPoc);
+   int lo = b.dPoc, hi = b.dPoc;
+   while(acc < target)
+     {
+      double up = (hi + 1 < b.dRows) ? b.DTotal(hi + 1) : -1;
+      double dn = (lo - 1 >= 0)      ? b.DTotal(lo - 1) : -1;
+      if(up < 0 && dn < 0) break;
+      if(up >= dn) { hi++; acc += up; }
+      else         { lo--; acc += dn; }
+     }
+   b.dVah = hi; b.dVal = lo;
+  }
+
+//--- diagonal imbalance on display rows: ask[d] vs bid[d-1], bid[d] vs ask[d+1]
+bool BuyImb(CFootBar *b, const int d)
+  {
+   if(d < 1 || b.dAsk[d] < InpImbMinVol) return false;
+   double other = b.dBid[d-1];
+   if(other <= 0) return true;
+   return b.dAsk[d] >= InpImbRatio * other;
+  }
+
+bool SellImb(CFootBar *b, const int d)
+  {
+   if(d >= b.dRows - 1 || b.dBid[d] < InpImbMinVol) return false;
+   double other = b.dAsk[d+1];
+   if(other <= 0) return true;
+   return b.dBid[d] >= InpImbRatio * other;
+  }
+
+//--- horizontal layout: own wide columns, or follow MT5 bar positions
+void LayoutColumns()
+  {
+   for(int i = 0; i < g_count; i++) g_bars[i].vis = false;
+   if(InpColumnWidth > 0)
+     {
+      g_colW = InpColumnWidth;
+      int gap   = MathMax(4, g_colW / 15);
+      int first = (int)ChartGetInteger(0, CHART_FIRST_VISIBLE_BAR);
+      int nvis  = (int)ChartGetInteger(0, CHART_VISIBLE_BARS);
+      int r0    = MathMax(0, first - nvis + 1);
+      datetime tR = iTime(_Symbol, _Period, r0);
+      int idxR = -1;
+      for(int i = g_count - 1; i >= 0; i--)
+         if(g_bars[i].time <= tR) { idxR = i; break; }
+      if(idxR < 0) return;
+      int rightEdge = g_w - 10;
+      for(int i = 0; i < g_count; i++)
+        {
+         int x = rightEdge - (idxR - i) * (g_colW + gap) - g_colW / 2;
+         g_bars[i].dX  = x;
+         g_bars[i].vis = (i <= idxR) && (x + g_colW / 2 >= 0);
+        }
+     }
+   else
+     {
+      int scale = (int)ChartGetInteger(0, CHART_SCALE);
+      g_colW = (int)MathMax(2, MathRound((1 << scale) * InpBarWidth));
+      for(int i = 0; i < g_count; i++)
+        {
+         int x, y;
+         if(!ChartTimePriceToXY(0, 0, g_bars[i].time, g_bars[i].close, x, y)) continue;
+         g_bars[i].dX  = x;
+         g_bars[i].vis = (x + g_colW >= 0 && x - g_colW <= g_w);
+        }
+     }
+  }
+
+//--- fit the price scale to the visible columns (wide mode)
+bool AutoFitPrice()
+  {
+   if(!InpAutoFitPrice || InpColumnWidth <= 0) return false;
+   double hi = -DBL_MAX, lo = DBL_MAX;
+   for(int i = 0; i < g_count; i++)
+     {
+      if(!g_bars[i].vis) continue;
+      hi = MathMax(hi, g_bars[i].high);
+      lo = MathMin(lo, g_bars[i].low);
+     }
+   if(hi <= lo) return false;
+   double pad = (hi - lo) * 0.06;
+   double statsFrac = InpStats ? (5.0 * (InpFontSize + 7)) / MathMax(100.0, (double)g_h) : 0.0;
+   double newMax = hi + pad;
+   double newMin = lo - pad - (hi - lo + 2 * pad) * statsFrac / MathMax(0.2, 1.0 - statsFrac);
+   double curMax = ChartGetDouble(0, CHART_FIXED_MAX);
+   double curMin = ChartGetDouble(0, CHART_FIXED_MIN);
+   bool fixed = (bool)ChartGetInteger(0, CHART_SCALEFIX);
+   double eps = (hi - lo) * 0.01;
+   if(fixed && MathAbs(curMax - newMax) < eps && MathAbs(curMin - newMin) < eps) return false;
+   ChartSetInteger(0, CHART_SCALEFIX, true);
+   ChartSetDouble(0, CHART_FIXED_MAX, newMax);
+   ChartSetDouble(0, CHART_FIXED_MIN, newMin);
+   return true;
   }
 
 //+------------------------------------------------------------------+
@@ -454,99 +611,112 @@ void Redraw()
    if(g_w != g_canvas.Width() || g_h != g_canvas.Height())
       g_canvas.Resize(g_w, g_h);
    g_canvas.Erase(0);
+   if(g_rs <= 0 || g_count == 0) { g_canvas.Update(false); return; }
+
+   LayoutColumns();
+   if(!g_fitBusy && AutoFitPrice())
+     {
+      g_fitBusy = true;
+      ChartRedraw();          // apply new scale, then draw with it
+      g_fitBusy = false;
+     }
 
    g_pmax = ChartGetDouble(0, CHART_PRICE_MAX, 0);
    g_pmin = ChartGetDouble(0, CHART_PRICE_MIN, 0);
-   if(g_pmax <= g_pmin || g_rs <= 0 || g_count == 0) { g_canvas.Update(); return; }
+   if(g_pmax <= g_pmin) { g_canvas.Update(false); return; }
 
-   int scale = (int)ChartGetInteger(0, CHART_SCALE);
-   int barPx = 1 << scale;
-   int cw    = (int)MathMax(2, MathRound(barPx * InpBarWidth));
-   int candleW = InpDrawCandle ? MathMax(1, cw / 8) : 0;
-   int cellW = MathMax(1, cw - (InpDrawCandle ? candleW + 1 : 0));
-   double rowPx = g_rs / (g_pmax - g_pmin) * g_h;
-   bool showText = (InpMode != FP_PROFILE) && rowPx >= InpFontSize + 3 && cellW >= 14;
-   g_canvas.FontSet(InpFont, -InpFontSize * 10);
+   //--- merge rows so each display row is tall enough for text
+   double basePx = g_rs / (g_pmax - g_pmin) * g_h;
+   g_k   = NiceInt((int)MathCeil(InpMinRowPx / MathMax(basePx, 0.01)));
+   g_drs = g_rs * g_k;
+   for(int i = 0; i < g_count; i++) BuildDisplay(g_bars[i]);
+   double rowPx = g_drs / (g_pmax - g_pmin) * g_h;
 
-   int statsRows = 4;
-   int statsRowH = InpFontSize + 6;
-   int statsTop  = g_h - statsRows * statsRowH;
+   int cw      = g_colW;
+   int candleW = InpDrawCandle ? MathMax(1, cw / 16) : 0;
+   int cellW   = MathMax(1, cw - (InpDrawCandle ? candleW + 2 : 0));
+   bool textFits = rowPx >= InpFontSize + 4;
+   bool showText = (InpMode != FP_PROFILE) && textFits && cellW >= ((InpMode == FP_SPLIT) ? 34 : 18);
+   g_canvas.FontSet(InpFont, -InpFontSize * 10, FW_NORMAL);
 
+   bool wide      = (InpColumnWidth > 0);
+   int statsRows  = wide ? 5 : 4;
+   int statsRowH  = InpFontSize + 7;
+   int statsTop   = g_h - statsRows * statsRowH;
+   int labelW     = 70;
+   int clipBottom = InpStats ? statsTop - 1 : g_h;
    int hoverBar = -1, hoverRow = -1;
 
-   //--- stacked imbalance zones and naked POC (drawn first, behind cells)
-   if((InpStackedZones && InpImbalance) || (InpNakedPOC && InpShowPOC))
-     {
-      for(int i = 0; i < g_count; i++)
-        {
-         CFootBar *b = g_bars[i];
-         if(!b.loaded || b.rows == 0) continue;
-         int x0;
-         if(!BarX(b, x0)) continue;
-         if(x0 > g_w) continue;
-
-         if(InpStackedZones && InpImbalance)
-           {
-            for(int side = 0; side < 2; side++)
-              {
-               int run = 0;
-               for(int r = 0; r <= b.rows; r++)
-                 {
-                  bool imb = (r < b.rows) && (side == 0 ? BuyImb(b, r) : SellImb(b, r));
-                  if(imb) { run++; continue; }
-                  if(run >= InpStacked)
-                    {
-                     double zLo = b.RowPrice(r - run, g_rs);
-                     double zHi = b.RowPrice(r, g_rs);
-                     int xEnd = g_w;
-                     for(int j = i + 1; j < g_count; j++)
-                       {
-                        CFootBar *c = g_bars[j];
-                        bool broken = (side == 0) ? (c.low < zLo) : (c.high > zHi);
-                        if(broken) { int xx; if(BarX(c, xx)) xEnd = xx; break; }
-                       }
-                     if(xEnd > 0)
-                       {
-                        color zc = (side == 0) ? g_imbBuy : g_imbSell;
-                        g_canvas.FillRectangle(x0, Y(zHi), xEnd, Y(zLo), FPColor(zc, 45));
-                       }
-                    }
-                  run = 0;
-                 }
-              }
-           }
-
-         if(InpNakedPOC && InpShowPOC && b.pocRow >= 0)
-           {
-            double pp = b.RowPrice(b.pocRow, g_rs) + g_rs / 2.0;
-            int xEnd = g_w;
-            bool touched = false;
-            for(int j = i + 1; j < g_count; j++)
-              {
-               CFootBar *c = g_bars[j];
-               if(c.low <= pp && c.high >= pp) { touched = true; break; }
-              }
-            if(!touched && xEnd > x0)
-               DashH(x0 + cw / 2, xEnd, Y(pp), FPColor(g_poc, 160));
-           }
-        }
-     }
-
-   int clipBottom = InpStats ? statsTop - 1 : g_h;
-   if(InpStats) g_canvas.FillRectangle(0, statsTop, g_w - 1, g_h - 1, FPColor(g_panel, 235));
-
-   //--- footprint cells
+   //--- stacked imbalance zones and naked POC (behind cells)
    for(int i = 0; i < g_count; i++)
      {
       CFootBar *b = g_bars[i];
-      int x;
-      if(!BarX(b, x)) continue;
-      if(x < -cw || x > g_w + cw) continue;
+      if(b.dRows == 0) continue;
+      if(!wide && !b.vis) continue;
+      int x0 = b.dX + cw / 2;
+      if(x0 > g_w) continue;
 
-      int left  = x - cw / 2;
-      int cLeft = left + (InpDrawCandle ? candleW + 1 : 0);
+      if(InpStackedZones && InpImbalance)
+        {
+         for(int side = 0; side < 2; side++)
+           {
+            int run = 0;
+            for(int d = 0; d <= b.dRows; d++)
+              {
+               bool imb = (d < b.dRows) && (side == 0 ? BuyImb(b, d) : SellImb(b, d));
+               if(imb) { run++; continue; }
+               if(run >= InpStacked)
+                 {
+                  double zLo = DPrice(b, d - run);
+                  double zHi = DPrice(b, d);
+                  int xEnd = g_w;
+                  for(int j = i + 1; j < g_count; j++)
+                    {
+                     CFootBar *c = g_bars[j];
+                     bool broken = (side == 0) ? (c.low < zLo) : (c.high > zHi);
+                     if(broken) { xEnd = MathMin(g_w, c.dX - cw / 2); break; }
+                    }
+                  if(xEnd > 0 && xEnd > x0)
+                    {
+                     color zc = (side == 0) ? g_imbBuy : g_imbSell;
+                     g_canvas.FillRectangle(MathMax(0, x0), Y(zHi), xEnd, MathMin(Y(zLo), clipBottom), FPColor(zc, 40));
+                     g_canvas.LineHorizontal(MathMax(0, x0), xEnd, Y(zHi), FPColor(zc, 90));
+                     g_canvas.LineHorizontal(MathMax(0, x0), xEnd, MathMin(Y(zLo), clipBottom), FPColor(zc, 90));
+                    }
+                 }
+               run = 0;
+              }
+           }
+        }
+
+      if(InpNakedPOC && InpShowPOC && b.dPoc >= 0)
+        {
+         double pp = DPrice(b, b.dPoc) + g_drs / 2.0;
+         bool touched = false;
+         for(int j = i + 1; j < g_count; j++)
+            if(g_bars[j].low <= pp && g_bars[j].high >= pp) { touched = true; break; }
+         if(!touched && g_w > x0)
+            DashH(MathMax(0, x0), g_w, Y(pp), FPColor(g_poc, 170));
+        }
+     }
+
+   if(InpStats) g_canvas.FillRectangle(0, statsTop, g_w - 1, g_h - 1, FPColor(g_panel, 240));
+
+   //--- columns
+   for(int i = 0; i < g_count; i++)
+     {
+      CFootBar *b = g_bars[i];
+      if(!b.vis) continue;
+      int x = b.dX;
+      if(x - cw > g_w) continue;
+
+      int left   = x - cw / 2;
+      int cLeft  = left + (InpDrawCandle ? candleW + 2 : 0);
       int cRight = cLeft + cellW - 1;
-      int mid   = cLeft + cellW / 2;
+      int mid    = cLeft + cellW / 2;
+
+      //--- column background
+      if(wide) g_canvas.FillRectangle(left, 0, left + cw - 1, clipBottom, FPColor(g_panel, 70));
 
       //--- thin candle
       if(InpDrawCandle)
@@ -558,183 +728,186 @@ void Redraw()
          g_canvas.FillRectangle(left, MathMin(yo, yc), left + candleW - 1, MathMax(MathMax(yo, yc), MathMin(yo, yc) + 1), FPColor(cc, 255));
         }
 
-      if(!b.loaded || b.rows == 0) continue;
-
-      double maxSide = 0, maxTot = 0, maxAbsD = 0;
-      for(int r = 0; r < b.rows; r++)
+      if(b.dRows > 0)
         {
-         maxSide = MathMax(maxSide, MathMax(b.bid[r], b.ask[r]));
-         maxTot  = MathMax(maxTot, b.Total(r));
-         maxAbsD = MathMax(maxAbsD, MathAbs(b.ask[r] - b.bid[r]));
-        }
-      if(maxTot <= 0) continue;
-
-      //--- hover detection
-      if(InpHover && g_mouseX >= cLeft && g_mouseX <= cRight && g_mouseY >= 0 && g_mouseY < g_h)
-        {
-         double mp = g_pmax - (double)g_mouseY / g_h * (g_pmax - g_pmin);
-         int hr = PriceRow(mp) - b.baseRow;
-         if(hr >= 0 && hr < b.rows) { hoverBar = i; hoverRow = hr; }
-        }
-
-      for(int r = 0; r < b.rows; r++)
-        {
-         double pLo = b.RowPrice(r, g_rs);
-         int yTop = Y(pLo + g_rs);
-         int yBot = Y(pLo) - 1;
-         if(yBot < yTop) yBot = yTop;
-         if(yBot < 0 || yTop > clipBottom) continue;
-         if(yBot > clipBottom) yBot = clipBottom;
-
-         double bv = b.bid[r], av = b.ask[r], tv = bv + av, dv = av - bv;
-         if(tv <= 0 && InpHideZero && InpMode == FP_PROFILE) continue;
-
-         switch(InpMode)
+         double maxSide = 0, maxTot = 0, maxAbsD = 0;
+         for(int d = 0; d < b.dRows; d++)
            {
-            case FP_SPLIT:
+            maxSide = MathMax(maxSide, MathMax(b.dBid[d], b.dAsk[d]));
+            maxTot  = MathMax(maxTot, b.DTotal(d));
+            maxAbsD = MathMax(maxAbsD, MathAbs(b.dAsk[d] - b.dBid[d]));
+           }
+
+         //--- hover detection
+         if(InpHover && g_mouseX >= left && g_mouseX <= left + cw - 1 && g_mouseY >= 0 && g_mouseY <= clipBottom)
+           {
+            double mp = g_pmax - (double)g_mouseY / g_h * (g_pmax - g_pmin);
+            int hr = (int)MathFloor(mp / g_drs + 1e-7) - b.dBase;
+            if(hr >= 0 && hr < b.dRows) { hoverBar = i; hoverRow = hr; }
+           }
+
+         for(int d = 0; d < b.dRows && maxTot > 0; d++)
+           {
+            double pLo = DPrice(b, d);
+            int yTop = Y(pLo + g_drs) + 1;
+            int yBot = Y(pLo);
+            if(yBot < yTop) yBot = yTop;
+            if(yBot < 0 || yTop > clipBottom) continue;
+            if(yBot > clipBottom) yBot = clipBottom;
+
+            double bv = b.dBid[d], av = b.dAsk[d], tv = bv + av, dv = av - bv;
+            bool bi = InpImbalance && BuyImb(b, d);
+            bool si = InpImbalance && SellImb(b, d);
+            bool isPoc = (d == b.dPoc);
+
+            switch(InpMode)
               {
-               int aB = (maxSide > 0) ? (int)(18 + 130 * bv / maxSide) : 18;
-               int aA = (maxSide > 0) ? (int)(18 + 130 * av / maxSide) : 18;
-               g_canvas.FillRectangle(cLeft, yTop, mid - 1, yBot, FPColor(g_sell, aB));
-               g_canvas.FillRectangle(mid, yTop, cRight, yBot, FPColor(g_buy, aA));
-               g_canvas.LineVertical(mid, yTop, yBot, FPColor(g_chartBg, 160));
-               if(InpImbalance && !showText)
+               case FP_SPLIT:
                  {
-                  if(BuyImb(b, r))  g_canvas.Rectangle(mid, yTop, cRight, yBot, FPColor(g_imbBuy, 255));
-                  if(SellImb(b, r)) g_canvas.Rectangle(cLeft, yTop, mid - 1, yBot, FPColor(g_imbSell, 255));
-                 }
-               if(showText)
-                 {
-                  int ty = (yTop + yBot) / 2;
-                  bool si = InpImbalance && SellImb(b, r);
-                  bool bi = InpImbalance && BuyImb(b, r);
-                  bool isPoc = (r == b.pocRow);
-                  if(!(InpHideZero && bv == 0))
+                  int aB = (maxSide > 0) ? (int)(16 + 120 * bv / maxSide) : 16;
+                  int aA = (maxSide > 0) ? (int)(16 + 120 * av / maxSide) : 16;
+                  g_canvas.FillRectangle(cLeft, yTop, mid - 1, yBot, FPColor(g_sell, aB));
+                  g_canvas.FillRectangle(mid + 1, yTop, cRight, yBot, FPColor(g_buy, aA));
+                  if(!showText)
                     {
-                     g_canvas.FontSet(InpFont, -InpFontSize * 10, (si || isPoc) ? FW_BOLD : FW_NORMAL);
-                     g_canvas.TextOut(mid - 2, ty, Fmt(bv), FPColor(si ? g_imbSell : g_text, 255), TA_RIGHT | TA_VCENTER);
+                     if(bi) g_canvas.Rectangle(mid + 1, yTop, cRight, yBot, FPColor(g_imbBuy, 255));
+                     if(si) g_canvas.Rectangle(cLeft, yTop, mid - 1, yBot, FPColor(g_imbSell, 255));
                     }
-                  if(!(InpHideZero && av == 0))
+                  else
                     {
-                     g_canvas.FontSet(InpFont, -InpFontSize * 10, (bi || isPoc) ? FW_BOLD : FW_NORMAL);
-                     g_canvas.TextOut(mid + 2, ty, Fmt(av), FPColor(bi ? g_imbBuy : g_text, 255), TA_LEFT | TA_VCENTER);
+                     int ty = (yTop + yBot) / 2;
+                     if(!(InpHideZero && bv == 0))
+                       {
+                        g_canvas.FontSet(InpFont, -InpFontSize * 10, (si || isPoc) ? FW_BOLD : FW_NORMAL);
+                        g_canvas.TextOut(mid - 4, ty, Fmt(bv), FPColor(si ? g_imbSell : g_text, 255), TA_RIGHT | TA_VCENTER);
+                       }
+                     if(!(InpHideZero && av == 0))
+                       {
+                        g_canvas.FontSet(InpFont, -InpFontSize * 10, (bi || isPoc) ? FW_BOLD : FW_NORMAL);
+                        g_canvas.TextOut(mid + 4, ty, Fmt(av), FPColor(bi ? g_imbBuy : g_text, 255), TA_LEFT | TA_VCENTER);
+                       }
+                     g_canvas.FontSet(InpFont, -InpFontSize * 10, FW_NORMAL);
                     }
-                  g_canvas.FontSet(InpFont, -InpFontSize * 10, FW_NORMAL);
+                  break;
                  }
-               break;
-              }
-            case FP_DELTA:
-            case FP_VOLUME:
-              {
-               color fc; int al;
-               if(InpCellColor == CELL_DELTA)
+               case FP_DELTA:
+               case FP_VOLUME:
                  {
-                  fc = (dv >= 0) ? g_buy : g_sell;
-                  al = (maxAbsD > 0) ? (int)(18 + 140 * MathAbs(dv) / maxAbsD) : 18;
+                  color fc; int al;
+                  if(InpCellColor == CELL_DELTA)
+                    {
+                     fc = (dv >= 0) ? g_buy : g_sell;
+                     al = (maxAbsD > 0) ? (int)(16 + 130 * MathAbs(dv) / maxAbsD) : 16;
+                    }
+                  else
+                    {
+                     fc = g_neutral;
+                     al = (int)(16 + 130 * tv / maxTot);
+                    }
+                  g_canvas.FillRectangle(cLeft, yTop, cRight, yBot, FPColor(fc, al));
+                  if(bi)      g_canvas.Rectangle(cLeft, yTop, cRight, yBot, FPColor(g_imbBuy, 255));
+                  else if(si) g_canvas.Rectangle(cLeft, yTop, cRight, yBot, FPColor(g_imbSell, 255));
+                  if(showText)
+                    {
+                     double v = (InpMode == FP_DELTA) ? dv : tv;
+                     if(!(InpHideZero && v == 0))
+                       {
+                        g_canvas.FontSet(InpFont, -InpFontSize * 10, isPoc ? FW_BOLD : FW_NORMAL);
+                        g_canvas.TextOut((cLeft + cRight) / 2, (yTop + yBot) / 2, Fmt(v), FPColor(g_text, 255), TA_CENTER | TA_VCENTER);
+                        g_canvas.FontSet(InpFont, -InpFontSize * 10, FW_NORMAL);
+                       }
+                    }
+                  break;
                  }
-               else
+               case FP_PROFILE:
                  {
-                  fc = g_neutral;
-                  al = (int)(18 + 140 * tv / maxTot);
+                  int len  = (int)MathRound((cellW - 1) * tv / maxTot);
+                  int lenS = (tv > 0) ? (int)MathRound(len * bv / tv) : 0;
+                  if(lenS > 0)   g_canvas.FillRectangle(cLeft, yTop, cLeft + lenS - 1, yBot, FPColor(g_sell, 200));
+                  if(len > lenS) g_canvas.FillRectangle(cLeft + lenS, yTop, cLeft + len - 1, yBot, FPColor(g_buy, 200));
+                  break;
                  }
-               g_canvas.FillRectangle(cLeft, yTop, cRight, yBot, FPColor(fc, al));
-               if(InpImbalance)
-                 {
-                  if(BuyImb(b, r))       g_canvas.Rectangle(cLeft, yTop, cRight, yBot, FPColor(g_imbBuy, 255));
-                  else if(SellImb(b, r)) g_canvas.Rectangle(cLeft, yTop, cRight, yBot, FPColor(g_imbSell, 255));
-                 }
-               if(showText)
-                 {
-                  double v = (InpMode == FP_DELTA) ? dv : tv;
-                  if(!(InpHideZero && v == 0))
-                     g_canvas.TextOut((cLeft + cRight) / 2, (yTop + yBot) / 2, Fmt(v), FPColor(g_text, 255), TA_CENTER | TA_VCENTER);
-                 }
-               break;
-              }
-            case FP_PROFILE:
-              {
-               int len  = (int)MathRound((cellW - 1) * tv / maxTot);
-               int lenS = (tv > 0) ? (int)MathRound(len * bv / tv) : 0;
-               if(lenS > 0) g_canvas.FillRectangle(cLeft, yTop, cLeft + lenS - 1, yBot, FPColor(g_sell, 200));
-               if(len > lenS) g_canvas.FillRectangle(cLeft + lenS, yTop, cLeft + len - 1, yBot, FPColor(g_buy, 200));
-               break;
               }
            }
-        }
 
-      //--- POC outline
-      if(InpShowPOC && b.pocRow >= 0)
-        {
-         double pLo = b.RowPrice(b.pocRow, g_rs);
-         g_canvas.Rectangle(cLeft, Y(pLo + g_rs), cRight, Y(pLo) - 1, FPColor(g_poc, 255));
-        }
-
-      //--- Value Area lines
-      if(InpShowVA && b.vahRow >= 0)
-        {
-         int yH = Y(b.RowPrice(b.vahRow, g_rs) + g_rs);
-         int yL = Y(b.RowPrice(b.valRow, g_rs)) - 1;
-         g_canvas.LineHorizontal(cLeft - 2, cRight + 2, yH, FPColor(g_va, 220));
-         g_canvas.LineHorizontal(cLeft - 2, cRight + 2, yL, FPColor(g_va, 220));
-         g_canvas.LineVertical(cRight + 1, yH, yL, FPColor(g_va, 120));
-        }
-
-      //--- Unfinished auction (both sides traded at the extreme)
-      if(InpUnfinished)
-        {
-         int top = b.rows - 1;
-         if(b.bid[top] > 0 && b.ask[top] > 0)
+         //--- POC outline
+         if(InpShowPOC && b.dPoc >= 0)
            {
-            int yy = Y(b.RowPrice(top, g_rs) + g_rs) - 2;
-            g_canvas.LineHorizontal(cLeft, cRight + cw / 2, yy, FPColor(g_unf, 220));
+            double pLo = DPrice(b, b.dPoc);
+            int yT = Y(pLo + g_drs), yB = MathMin(Y(pLo), clipBottom);
+            g_canvas.Rectangle(cLeft, yT, cRight, yB, FPColor(g_poc, 255));
+            if(wide) g_canvas.Rectangle(cLeft + 1, yT + 1, cRight - 1, yB - 1, FPColor(g_poc, 120));
            }
-         if(b.bid[0] > 0 && b.ask[0] > 0)
+
+         //--- Value Area
+         if(InpShowVA && b.dVah >= 0)
            {
-            int yy = Y(b.RowPrice(0, g_rs)) + 1;
-            g_canvas.LineHorizontal(cLeft, cRight + cw / 2, yy, FPColor(g_unf, 220));
+            int yH = Y(DPrice(b, b.dVah) + g_drs);
+            int yL = MathMin(Y(DPrice(b, b.dVal)), clipBottom);
+            g_canvas.LineHorizontal(cLeft, cRight + 3, yH, FPColor(g_va, 230));
+            g_canvas.LineHorizontal(cLeft, cRight + 3, yL, FPColor(g_va, 230));
+            g_canvas.LineVertical(cRight + 2, yH, yL, FPColor(g_va, 150));
+           }
+
+         //--- unfinished auction (both sides traded at the extreme)
+         if(InpUnfinished)
+           {
+            int top = b.dRows - 1;
+            if(b.dBid[top] > 0 && b.dAsk[top] > 0)
+               DashH(cLeft, cRight, Y(DPrice(b, top) + g_drs) - 2, FPColor(g_unf, 230));
+            if(b.dBid[0] > 0 && b.dAsk[0] > 0)
+               DashH(cLeft, cRight, MathMin(Y(DPrice(b, 0)) + 2, clipBottom), FPColor(g_unf, 230));
            }
         }
 
-      //--- stats rows
-      if(InpStats && cw >= 16)
+      //--- stats cells
+      if(InpStats && cw >= 24 && left > labelW)
         {
          double vals[4];
          vals[0] = b.delta; vals[1] = b.maxDelta; vals[2] = b.minDelta; vals[3] = b.volume;
          double ref = MathMax(1.0, b.volume);
-         for(int s = 0; s < statsRows; s++)
+         for(int s = 0; s < 4; s++)
            {
             int yT = statsTop + s * statsRowH;
             color sc = (s == 3) ? g_neutral : ((vals[s] >= 0) ? g_buy : g_sell);
-            int al = (s == 3) ? 40 : (int)(30 + 150 * MathMin(1.0, MathAbs(vals[s]) / ref));
-            g_canvas.FillRectangle(left, yT + 1, left + cw - 2, yT + statsRowH - 1, FPColor(sc, al));
+            int al = (s == 3) ? 45 : (int)(30 + 150 * MathMin(1.0, MathAbs(vals[s]) / ref));
+            g_canvas.FillRectangle(left, yT + 1, left + cw - 1, yT + statsRowH - 1, FPColor(sc, al));
             g_canvas.TextOut(x, yT + statsRowH / 2, Fmt(vals[s]), FPColor(g_text, 255), TA_CENTER | TA_VCENTER);
+           }
+         if(wide)
+           {
+            int yT = statsTop + 4 * statsRowH;
+            MqlDateTime dt; TimeToStruct(b.time, dt);
+            string ts = (dt.hour == 0 && dt.min == 0 && _Period < PERIOD_D1) ? TimeToString(b.time, TIME_DATE) : TimeToString(b.time, TIME_MINUTES);
+            if(_Period >= PERIOD_D1) ts = TimeToString(b.time, TIME_DATE);
+            g_canvas.TextOut(x, yT + statsRowH / 2, ts, FPColor(g_textDim, 255), TA_CENTER | TA_VCENTER);
            }
         }
      }
 
-   //--- stats panel frame and labels
+   //--- stats frame and labels
    if(InpStats)
      {
-      string labels[4] = {"DELTA", "MAX DELTA", "MIN DELTA", "VOLUME"};
-      g_canvas.FillRectangle(0, statsTop, g_w - 1, statsTop, FPColor(g_border, 255));
+      string labels[5] = {"DELTA", "MAX DELTA", "MIN DELTA", "VOLUME", "TIME"};
+      g_canvas.LineHorizontal(0, g_w - 1, statsTop, FPColor(g_border, 255));
       g_canvas.FontSet(InpLabelFont, -InpFontSize * 10, FW_SEMIBOLD);
       for(int s = 0; s < statsRows; s++)
         {
          int yT = statsTop + s * statsRowH;
-         if(s > 0) g_canvas.LineHorizontal(0, g_w - 1, yT, FPColor(g_border, 120));
-         g_canvas.FillRectangle(0, yT + 1, 64, yT + statsRowH - 1, FPColor(g_panel, 245));
-         g_canvas.TextOut(6, yT + statsRowH / 2, labels[s], FPColor(g_textDim, 255), TA_LEFT | TA_VCENTER);
+         if(s > 0) g_canvas.LineHorizontal(0, g_w - 1, yT, FPColor(g_border, 110));
+         g_canvas.FillRectangle(0, yT + 1, labelW, yT + statsRowH - 1, FPColor(g_panel, 255));
+         g_canvas.TextOut(8, yT + statsRowH / 2, labels[s], FPColor(g_textDim, 255), TA_LEFT | TA_VCENTER);
         }
-      g_canvas.LineVertical(64, statsTop, g_h - 1, FPColor(g_border, 255));
+      g_canvas.LineVertical(labelW, statsTop, g_h - 1, FPColor(g_border, 255));
       g_canvas.FontSet(InpFont, -InpFontSize * 10, FW_NORMAL);
      }
 
-   //--- header panel (top right): product, symbol, settings, data-source badge
+   //--- header panel (top right)
    if(InpShowHeader)
      {
       g_canvas.FontSet(InpLabelFont, -(InpFontSize + 1) * 10, FW_BOLD);
       string title = "FOOTPRINT PRO";
-      string info  = _Symbol + "  " + StringSubstr(EnumToString(_Period), 7) + "   Row " + DoubleToString(g_rs, _Digits);
+      string info  = _Symbol + "  " + StringSubstr(EnumToString(_Period), 7) + "   Row " + DoubleToString(g_drs, _Digits);
       string badge = g_useFlags ? "EXCHANGE DATA" : "ESTIMATED FLOW";
       int tw = g_canvas.TextWidth(title);
       g_canvas.FontSet(InpLabelFont, -InpFontSize * 10, FW_NORMAL);
@@ -744,14 +917,13 @@ void Redraw()
       int pw = MathMax(tw + bw2 + 10, iw) + 20;
       int ph = (InpFontSize + 7) * 2 + 10;
       int px = g_w - pw - 8, py = 8;
-      g_canvas.FillRectangle(px, py, px + pw, py + ph, FPColor(g_panel, 235));
+      color bc = g_useFlags ? g_live : g_estimate;
+      g_canvas.FillRectangle(px, py, px + pw, py + ph, FPColor(g_panel, 240));
       g_canvas.Rectangle(px, py, px + pw, py + ph, FPColor(g_border, 255));
-      g_canvas.FillRectangle(px, py, px + 2, py + ph, FPColor(g_useFlags ? g_live : g_estimate, 255));
+      g_canvas.FillRectangle(px, py, px + 2, py + ph, FPColor(bc, 255));
       g_canvas.FontSet(InpLabelFont, -(InpFontSize + 1) * 10, FW_BOLD);
       g_canvas.TextOut(px + 10, py + 6, title, FPColor(g_text, 255), TA_LEFT | TA_TOP);
-      int bx0 = px + 10 + tw + 10, by0 = py + 6;
-      int bh0 = InpFontSize + 6;
-      color bc = g_useFlags ? g_live : g_estimate;
+      int bx0 = px + 10 + tw + 10, by0 = py + 6, bh0 = InpFontSize + 6;
       g_canvas.FillRectangle(bx0, by0, bx0 + bw2, by0 + bh0, FPColor(bc, 50));
       g_canvas.Rectangle(bx0, by0, bx0 + bw2, by0 + bh0, FPColor(bc, 255));
       g_canvas.FontSet(InpLabelFont, -(InpFontSize - 1) * 10, FW_BOLD);
@@ -766,26 +938,26 @@ void Redraw()
      {
       g_canvas.FontSet(InpFont, -InpFontSize * 10, FW_NORMAL);
       CFootBar *b = g_bars[hoverBar];
-      double pLo = b.RowPrice(hoverRow, g_rs);
+      double pLo = DPrice(b, hoverRow);
       string lines[7];
       lines[0] = TimeToString(b.time, TIME_DATE | TIME_MINUTES);
-      lines[1] = "Price " + DoubleToString(pLo, _Digits) + " - " + DoubleToString(pLo + g_rs, _Digits);
-      lines[2] = "Bid " + Fmt(b.bid[hoverRow]) + "  x  Ask " + Fmt(b.ask[hoverRow]);
-      lines[3] = "Row delta " + Fmt(b.ask[hoverRow] - b.bid[hoverRow]) + "  vol " + Fmt(b.Total(hoverRow));
+      lines[1] = "Price " + DoubleToString(pLo, _Digits) + " - " + DoubleToString(pLo + g_drs, _Digits);
+      lines[2] = "Bid " + Fmt(b.dBid[hoverRow]) + "  x  Ask " + Fmt(b.dAsk[hoverRow]);
+      lines[3] = "Row delta " + Fmt(b.dAsk[hoverRow] - b.dBid[hoverRow]) + "  vol " + Fmt(b.DTotal(hoverRow));
       lines[4] = "Bar delta " + Fmt(b.delta) + "  vol " + Fmt(b.volume);
-      lines[5] = "POC " + DoubleToString(b.RowPrice(b.pocRow, g_rs), _Digits);
+      lines[5] = "POC " + DoubleToString(DPrice(b, b.dPoc), _Digits);
       lines[6] = g_useFlags ? "Side: exchange flags" : "Side: tick-rule estimate";
-      int lh = InpFontSize + 6, bw = 0;
+      int lh = InpFontSize + 7, bw = 0;
       for(int k = 0; k < 7; k++) bw = MathMax(bw, g_canvas.TextWidth(lines[k]));
-      bw += 12;
-      int bh = lh * 7 + 8;
+      bw += 16;
+      int bh = lh * 7 + 10;
       int bx = g_mouseX + 16, by = g_mouseY + 16;
       if(bx + bw > g_w) bx = g_mouseX - bw - 16;
       if(by + bh > g_h) by = g_mouseY - bh - 16;
-      g_canvas.FillRectangle(bx, by, bx + bw, by + bh, FPColor(g_panel, 245));
+      g_canvas.FillRectangle(bx, by, bx + bw, by + bh, FPColor(g_panel, 250));
       g_canvas.Rectangle(bx, by, bx + bw, by + bh, FPColor(g_border, 255));
       for(int k = 0; k < 7; k++)
-         g_canvas.TextOut(bx + 6, by + 4 + k * lh, lines[k], FPColor(g_text, 255), TA_LEFT | TA_TOP);
+         g_canvas.TextOut(bx + 8, by + 5 + k * lh, lines[k], FPColor(k == 0 ? g_textDim : g_text, 255), TA_LEFT | TA_TOP);
      }
 
    g_canvas.Update(false);
@@ -837,6 +1009,7 @@ int OnInit()
    ApplyTheme();
    if(InpTheme != THEME_CUSTOM && InpApplyChartTheme) SetChartTheme(true);
    if(InpHideCandles) HideCandles(true);
+   SetChartOptions(true);
    if(InpHover) ChartSetInteger(0, CHART_EVENT_MOUSE_MOVE, true);
 
    g_rs = 0;
@@ -854,6 +1027,7 @@ void OnDeinit(const int reason)
    g_canvas.Destroy();
    HideCandles(false);
    SetChartTheme(false);
+   SetChartOptions(false);
    ChartRedraw();
   }
 

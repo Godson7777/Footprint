@@ -28,12 +28,17 @@ Di simbol bursa (futures/saham dengan data trade asli), indikator otomatis memak
 2. Salin `MQL5/Indicators/FootprintPro.mq5` ke folder `MQL5/Indicators/`.
 3. Buka **MetaEditor** (F4), buka file itu, lalu tekan **Compile** (F7).
 4. Di MT5, buka Navigator → Indicators → seret **FootprintPro** ke chart.
-5. **Zoom chart sampai paling besar** (tekan `+` beberapa kali). MT5 membatasi jarak antar candle maksimal 32 piksel, jadi angka hanya muncul di zoom terbesar. Di zoom kecil sel tetap tampil sebagai heatmap warna.
-6. Tarik skala harga ke atas/bawah supaya tiap baris cukup tinggi untuk angka.
+5. Secara default indikator memakai **Wide Mode**. Kolom footprint selebar 90 piksel digambar sendiri oleh indikator, tidak mengikuti batas 32 piksel MT5. Skala harga otomatis menyesuaikan kolom yang terlihat, dan baris harga digabung otomatis sampai cukup tinggi untuk angka.
+   - Geser chart (drag atau scroll) seperti biasa untuk melihat candle sebelumnya.
+   - Sumbu waktu MT5 disembunyikan karena posisinya tidak cocok dengan kolom lebar. Waktu tiap candle tampil di baris **TIME** di panel bawah.
+   - Mau kolom lebih lebar atau sempit? Ubah **Column width** (misalnya 120). Isi 0 untuk kembali mengikuti candle MT5.
 
 ## Pengaturan utama
 | Pengaturan | Default | Keterangan |
 |---|---|---|
+| Column width | 90 px | Lebar kolom footprint (0 = ikuti candle MT5) |
+| Auto-fit price scale | true | Skala harga menyesuaikan kolom yang terlihat |
+| Min row height | 13 px | Baris digabung otomatis sampai setinggi ini |
 | Bars to calculate | 150 | Jumlah candle yang dihitung (makin banyak, makin berat) |
 | Row size in points | 0 (auto) | Ukuran tiap level harga. Auto ≈ 20 baris per candle |
 | Display mode | Split | Split / Delta / Volume / Profile |
