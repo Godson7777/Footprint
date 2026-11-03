@@ -1,0 +1,64 @@
+Tested 444 combos with >=15 IS trades. IS cut at 3000/5001 candles
+
+{'piv': 3, 'tol': 0.8, 'min_depth': 2.0, 'sl_buf': 0.25, 'rr': 2.5, 'trend': True, 'session': None, 'body': 0.5}
+   IS   n= 15 win= 80.0% tot= 19.19R pf=17.63 dd=-1.13
+   OOS  n= 13 win= 23.1% tot= -7.69R pf=0.17 dd=-7.75
+   FULL n= 26 win= 50.0% tot= 10.79R pf=2.04 dd=-7.75
+{'piv': 3, 'tol': 0.8, 'min_depth': 2.0, 'sl_buf': 0.1, 'rr': 3.0, 'trend': True, 'session': None, 'body': 0.5}
+   IS   n= 15 win= 80.0% tot= 19.27R pf=17.62 dd=-1.13
+   OOS  n= 13 win= 23.1% tot= -7.71R pf=0.17 dd=-7.76
+   FULL n= 26 win= 50.0% tot= 10.83R pf=2.03 dd=-7.76
+{'piv': 3, 'tol': 0.8, 'min_depth': 2.0, 'sl_buf': 0.1, 'rr': 2.5, 'trend': True, 'session': None, 'body': 0.5}
+   IS   n= 15 win= 80.0% tot= 19.20R pf=17.56 dd=-1.13
+   OOS  n= 13 win= 23.1% tot= -7.71R pf=0.17 dd=-7.76
+   FULL n= 26 win= 50.0% tot= 10.76R pf=2.03 dd=-7.76
+{'piv': 3, 'tol': 0.8, 'min_depth': 2.0, 'sl_buf': 0.5, 'rr': 2.5, 'trend': True, 'session': None, 'body': 0.5}
+   IS   n= 15 win= 80.0% tot= 17.11R pf=15.95 dd=-1.12
+   OOS  n= 13 win= 23.1% tot= -7.67R pf=0.16 dd=-7.73
+   FULL n= 26 win= 50.0% tot=  8.77R pf=1.85 dd=-7.73
+{'piv': 3, 'tol': 0.5, 'min_depth': 2.0, 'sl_buf': 0.1, 'rr': 3.0, 'trend': False, 'session': None, 'body': 0}
+   IS   n= 15 win= 73.3% tot= 16.70R pf=8.19 dd=-2.10
+   OOS  n= 21 win= 23.8% tot=-12.16R pf=0.30 dd=-12.16
+   FULL n= 34 win= 44.1% tot=  4.41R pf=1.23 dd=-12.16
+{'piv': 3, 'tol': 0.5, 'min_depth': 2.0, 'sl_buf': 0.25, 'rr': 3.0, 'trend': False, 'session': None, 'body': 0}
+   IS   n= 15 win= 73.3% tot= 16.58R pf=8.18 dd=-2.10
+   OOS  n= 21 win= 23.8% tot=-12.12R pf=0.30 dd=-12.12
+   FULL n= 34 win= 44.1% tot=  4.32R pf=1.22 dd=-12.12
+{'piv': 3, 'tol': 0.5, 'min_depth': 2.0, 'sl_buf': 0.5, 'rr': 3.0, 'trend': False, 'session': None, 'body': 0}
+   IS   n= 15 win= 73.3% tot= 16.39R pf=8.15 dd=-2.10
+   OOS  n= 21 win= 23.8% tot=-12.08R pf=0.28 dd=-12.08
+   FULL n= 34 win= 44.1% tot=  4.18R pf=1.22 dd=-12.08
+{'piv': 3, 'tol': 0.8, 'min_depth': 2.0, 'sl_buf': 0.25, 'rr': 3.0, 'trend': True, 'session': None, 'body': 0.5}
+   IS   n= 15 win= 73.3% tot= 15.19R pf=7.74 dd=-1.13
+   OOS  n= 13 win= 23.1% tot= -7.69R pf=0.17 dd=-7.75
+   FULL n= 26 win= 46.2% tot=  6.79R pf=1.59 dd=-7.75
+{'piv': 3, 'tol': 0.8, 'min_depth': 2.0, 'sl_buf': 0.5, 'rr': 3.0, 'trend': True, 'session': None, 'body': 0.5}
+   IS   n= 15 win= 73.3% tot= 15.07R pf=7.73 dd=-1.12
+   OOS  n= 13 win= 23.1% tot= -7.67R pf=0.16 dd=-7.73
+   FULL n= 26 win= 46.2% tot=  6.72R pf=1.59 dd=-7.73
+{'piv': 3, 'tol': 0.5, 'min_depth': 2.0, 'sl_buf': 0.5, 'rr': 2.5, 'trend': False, 'session': None, 'body': 0}
+   IS   n= 15 win= 73.3% tot= 14.94R pf=7.52 dd=-2.10
+   OOS  n= 21 win= 23.8% tot=-11.50R pf=0.32 dd=-11.50
+   FULL n= 34 win= 44.1% tot=  3.31R pf=1.17 dd=-11.50
+{'piv': 3, 'tol': 0.5, 'min_depth': 2.0, 'sl_buf': 0.25, 'rr': 2.5, 'trend': False, 'session': None, 'body': 0}
+   IS   n= 15 win= 73.3% tot= 15.04R pf=7.51 dd=-2.10
+   OOS  n= 21 win= 23.8% tot=-11.65R pf=0.32 dd=-11.70
+   FULL n= 34 win= 44.1% tot=  3.26R pf=1.17 dd=-11.70
+{'piv': 3, 'tol': 0.5, 'min_depth': 2.0, 'sl_buf': 0.1, 'rr': 2.5, 'trend': False, 'session': None, 'body': 0}
+   IS   n= 15 win= 73.3% tot= 15.10R pf=7.51 dd=-2.10
+   OOS  n= 21 win= 23.8% tot=-11.75R pf=0.33 dd=-11.87
+   FULL n= 34 win= 44.1% tot=  3.21R pf=1.16 dd=-11.87
+{'piv': 3, 'tol': 0.8, 'min_depth': 1.0, 'sl_buf': 0.25, 'rr': 2.5, 'trend': True, 'session': None, 'body': 0.5}
+   IS   n= 16 win= 75.0% tot= 17.62R pf=7.47 dd=-1.57
+   OOS  n= 15 win= 26.7% tot= -7.83R pf=0.29 dd=-7.89
+   FULL n= 29 win= 48.3% tot=  9.08R pf=1.66 dd=-7.89
+{'piv': 3, 'tol': 0.8, 'min_depth': 1.5, 'sl_buf': 0.25, 'rr': 2.5, 'trend': True, 'session': None, 'body': 0.5}
+   IS   n= 16 win= 75.0% tot= 17.62R pf=7.47 dd=-1.57
+   OOS  n= 15 win= 26.7% tot= -7.83R pf=0.29 dd=-7.89
+   FULL n= 29 win= 48.3% tot=  9.08R pf=1.66 dd=-7.89
+{'piv': 3, 'tol': 0.8, 'min_depth': 1.0, 'sl_buf': 0.1, 'rr': 3.0, 'trend': True, 'session': None, 'body': 0.5}
+   IS   n= 16 win= 75.0% tot= 17.67R pf=7.40 dd=-2.33
+   OOS  n= 15 win= 26.7% tot= -7.43R pf=0.33 dd=-7.48
+   FULL n= 29 win= 48.3% tot=  9.50R pf=1.69 dd=-7.48
+
+Baseline R1 FULL n=51 pf=1.46 tot=12.53 | OOS n=27 pf=0.81 tot=-3.38

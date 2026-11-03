@@ -1,0 +1,18 @@
+RR2.5 session=None      IS pf=2.67 OOS pf=0.81 | FULL n=51 win=49% pf=1.46 tot=12.53 dd=-10.62
+RR2.5 session=(6, 20)   IS pf=1.68 OOS pf=1.24 | FULL n=35 win=49% pf=1.42 tot=7.55 dd=-6.59
+RR2.5 session=(7, 20)   IS pf=1.68 OOS pf=1.69 | FULL n=30 win=50% pf=1.66 tot=9.74 dd=-5.81
+RR2.5 session=(8, 20)   IS pf=1.68 OOS pf=1.54 | FULL n=26 win=50% pf=1.61 tot=7.60 dd=-5.81
+RR2.5 session=(7, 19)   IS pf=1.08 OOS pf=1.58 | FULL n=26 win=46% pf=1.28 tot=4.19 dd=-5.81
+RR2.5 session=(7, 21)   IS pf=1.45 OOS pf=1.69 | FULL n=31 win=48% pf=1.53 tot=8.43 dd=-5.81
+RR2.5 session=(6, 21)   IS pf=1.45 OOS pf=1.24 | FULL n=36 win=47% pf=1.32 tot=6.24 dd=-6.59
+RR2.5 session=(8, 17)   IS pf=0.48 OOS pf=2.40 | FULL n=18 win=44% pf=0.95 tot=-0.58 dd=-5.68
+RR2.5 session=(12, 20)  IS pf=1.74 OOS pf=0.91 | FULL n=18 win=44% pf=1.39 tot=3.52 dd=-5.87
+RR3.0 session=None      IS pf=2.35 OOS pf=0.90 | FULL n=51 win=47% pf=1.44 tot=12.48 dd=-9.60
+RR3.0 session=(6, 20)   IS pf=1.67 OOS pf=1.34 | FULL n=35 win=49% pf=1.47 tot=8.50 dd=-6.59
+RR3.0 session=(7, 20)   IS pf=1.67 OOS pf=1.84 | FULL n=30 win=50% pf=1.73 tot=10.69 dd=-6.43
+RR3.0 session=(8, 20)   IS pf=1.67 OOS pf=1.55 | FULL n=26 win=50% pf=1.60 tot=7.55 dd=-6.43
+RR3.0 session=(7, 19)   IS pf=1.13 OOS pf=1.74 | FULL n=26 win=46% pf=1.38 tot=5.60 dd=-6.42
+RR3.0 session=(7, 21)   IS pf=1.44 OOS pf=1.84 | FULL n=31 win=48% pf=1.58 tot=9.38 dd=-6.43
+RR3.0 session=(6, 21)   IS pf=1.44 OOS pf=1.34 | FULL n=36 win=47% pf=1.37 tot=7.19 dd=-6.59
+RR3.0 session=(8, 17)   IS pf=0.41 OOS pf=2.41 | FULL n=18 win=44% pf=0.89 tot=-1.17 dd=-6.29
+RR3.0 session=(12, 20)  IS pf=1.84 OOS pf=1.06 | FULL n=18 win=44% pf=1.51 tot=4.56 dd=-5.70

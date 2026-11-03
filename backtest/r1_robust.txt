@@ -1,0 +1,28 @@
+4368 variants with >=10 IS and >=8 OOS trades
+
+{'piv': 5, 'tol': 0.5, 'min_gap': 10, 'min_depth': 1.0, 'sl_buf': 0.25, 'rr': 2.5, 'trend': False, 'session': (7, 20), 'body': 0}
+   IS  n= 18 pf=1.68 tot=  5.52 | OOS n= 13 pf=1.69 tot=  4.56 | FULL n=30 win=50% pf=1.66 tot=9.74 dd=-5.81
+{'piv': 5, 'tol': 0.5, 'min_gap': 10, 'min_depth': 1.5, 'sl_buf': 0.25, 'rr': 2.5, 'trend': False, 'session': (7, 20), 'body': 0}
+   IS  n= 18 pf=1.68 tot=  5.52 | OOS n= 13 pf=1.69 tot=  4.56 | FULL n=30 win=50% pf=1.66 tot=9.74 dd=-5.81
+{'piv': 5, 'tol': 0.5, 'min_gap': 10, 'min_depth': 1.0, 'sl_buf': 0.1, 'rr': 3.0, 'trend': False, 'session': (7, 20), 'body': 0}
+   IS  n= 18 pf=1.68 tot=  5.54 | OOS n= 13 pf=1.84 tot=  5.62 | FULL n=30 win=50% pf=1.73 tot=10.81 dd=-6.42
+{'piv': 5, 'tol': 0.5, 'min_gap': 10, 'min_depth': 1.5, 'sl_buf': 0.1, 'rr': 3.0, 'trend': False, 'session': (7, 20), 'body': 0}
+   IS  n= 18 pf=1.68 tot=  5.54 | OOS n= 13 pf=1.84 tot=  5.62 | FULL n=30 win=50% pf=1.73 tot=10.81 dd=-6.42
+{'piv': 5, 'tol': 0.5, 'min_gap': 10, 'min_depth': 1.0, 'sl_buf': 0.25, 'rr': 3.0, 'trend': False, 'session': (7, 20), 'body': 0}
+   IS  n= 18 pf=1.67 tot=  5.45 | OOS n= 13 pf=1.84 tot=  5.58 | FULL n=30 win=50% pf=1.73 tot=10.69 dd=-6.43
+{'piv': 5, 'tol': 0.5, 'min_gap': 10, 'min_depth': 1.5, 'sl_buf': 0.25, 'rr': 3.0, 'trend': False, 'session': (7, 20), 'body': 0}
+   IS  n= 18 pf=1.67 tot=  5.45 | OOS n= 13 pf=1.84 tot=  5.58 | FULL n=30 win=50% pf=1.73 tot=10.69 dd=-6.43
+{'piv': 5, 'tol': 0.5, 'min_gap': 10, 'min_depth': 1.0, 'sl_buf': 0.1, 'rr': 2.5, 'trend': False, 'session': (7, 20), 'body': 0}
+   IS  n= 18 pf=1.67 tot=  5.48 | OOS n= 13 pf=1.68 tot=  4.53 | FULL n=30 win=50% pf=1.65 tot=9.66 dd=-5.89
+{'piv': 5, 'tol': 0.5, 'min_gap': 10, 'min_depth': 1.5, 'sl_buf': 0.1, 'rr': 2.5, 'trend': False, 'session': (7, 20), 'body': 0}
+   IS  n= 18 pf=1.67 tot=  5.48 | OOS n= 13 pf=1.68 tot=  4.53 | FULL n=30 win=50% pf=1.65 tot=9.66 dd=-5.89
+{'piv': 5, 'tol': 0.5, 'min_gap': 10, 'min_depth': 1.0, 'sl_buf': 0.1, 'rr': 3.0, 'trend': False, 'session': (7, 20), 'body': 0.3}
+   IS  n= 18 pf=1.68 tot=  5.54 | OOS n=  9 pf=1.63 tot=  3.10 | FULL n=26 win=46% pf=1.63 tot=8.29 dd=-6.42
+{'piv': 5, 'tol': 0.5, 'min_gap': 10, 'min_depth': 1.0, 'sl_buf': 0.1, 'rr': 3.0, 'trend': False, 'session': (7, 20), 'body': 0.6}
+   IS  n= 17 pf=2.03 tot=  6.97 | OOS n=  9 pf=1.63 tot=  3.10 | FULL n=25 win=48% pf=1.83 tot=9.71 dd=-5.00
+{'piv': 5, 'tol': 0.5, 'min_gap': 10, 'min_depth': 1.5, 'sl_buf': 0.1, 'rr': 3.0, 'trend': False, 'session': (7, 20), 'body': 0.3}
+   IS  n= 18 pf=1.68 tot=  5.54 | OOS n=  9 pf=1.63 tot=  3.10 | FULL n=26 win=46% pf=1.63 tot=8.29 dd=-6.42
+{'piv': 5, 'tol': 0.5, 'min_gap': 10, 'min_depth': 1.5, 'sl_buf': 0.1, 'rr': 3.0, 'trend': False, 'session': (7, 20), 'body': 0.6}
+   IS  n= 17 pf=2.03 tot=  6.97 | OOS n=  9 pf=1.63 tot=  3.10 | FULL n=25 win=48% pf=1.83 tot=9.71 dd=-5.00
+
+Variants with PF>1.2 in BOTH halves: 68 of 4368
