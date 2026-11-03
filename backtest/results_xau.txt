@@ -1,0 +1,24 @@
+Period 2026-04-09 .. 2026-11-03, H1, coins ['xyz_GOLD', 'PAXG']
+
+Rule                      Coin   Trades   Win%    TotR  Exp R    PF  MaxDD R
+----------------------------------------------------------------------------
+R1 Classic breakout       xyz_GOLD     28   46.4    2.89   0.10  1.17    -8.52
+R1 Classic breakout       PAXG       23   52.2    9.64   0.42  1.89    -3.87
+R1 Classic breakout       ALL        51   49.0   12.53   0.25  1.46   -10.62
+
+R2 Neckline retest        xyz_GOLD     22   36.4   -3.24  -0.15  0.81    -8.87
+R2 Neckline retest        PAXG       16   43.8    1.46   0.09  1.15    -4.32
+R2 Neckline retest        ALL        38   39.5   -1.78  -0.05  0.94   -13.17
+
+R3 Trend + EMA200         xyz_GOLD     23   39.1   -3.28  -0.14  0.79    -9.69
+R3 Trend + EMA200         PAXG       21   47.6    4.99   0.24  1.45    -3.88
+R3 Trend + EMA200         ALL        44   43.2    1.71   0.04  1.06   -13.27
+
+R4 Tight SL half-pattern  xyz_GOLD     14   28.6   -7.61  -0.54  0.36   -10.81
+R4 Tight SL half-pattern  PAXG       13   46.2    6.17   0.47  1.79    -4.88
+R4 Tight SL half-pattern  ALL        27   37.0   -1.43  -0.05  0.93   -14.62
+
+R5 RSI divergence         xyz_GOLD      8   75.0    5.20   0.65  3.39    -1.46
+R5 RSI divergence         PAXG        8   75.0    5.88   0.74  3.71    -1.49
+R5 RSI divergence         ALL        16   75.0   11.09   0.69  3.55    -2.94
+

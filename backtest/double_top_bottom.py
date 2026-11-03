@@ -13,7 +13,8 @@ Assumptions (conservative):
 import json, os, statistics
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-COINS = ["BTC", "ETH", "SOL"]
+import sys
+COINS = sys.argv[1:] or ["BTC", "ETH", "SOL"]
 FEE = 0.00045
 MAX_HOLD = 96
 
@@ -187,8 +188,8 @@ def load(coin):
 def main():
     data = {c: load(c) for c in COINS}
     import datetime as dt
-    t0 = dt.datetime.fromtimestamp(data["BTC"]["t"][0] / 1000, dt.timezone.utc).date()
-    t1 = dt.datetime.fromtimestamp(data["BTC"]["t"][-1] / 1000, dt.timezone.utc).date()
+    t0 = dt.datetime.fromtimestamp(data[COINS[0]]["t"][0] / 1000, dt.timezone.utc).date()
+    t1 = dt.datetime.fromtimestamp(data[COINS[0]]["t"][-1] / 1000, dt.timezone.utc).date()
     print(f"Period {t0} .. {t1}, H1, coins {COINS}\n")
     hdr = f"{'Rule':26}{'Coin':6}{'Trades':>7}{'Win%':>7}{'TotR':>8}{'Exp R':>7}{'PF':>6}{'MaxDD R':>9}"
     print(hdr); print("-" * len(hdr))
