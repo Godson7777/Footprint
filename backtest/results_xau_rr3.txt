@@ -1,0 +1,16 @@
+R1 Classic breakout    RR2.5 xyz_GOLD  n= 28 win= 46.4% tot=  2.89R pf=1.17 dd=-8.52
+R1 Classic breakout    RR2.5 PAXG      n= 23 win= 52.2% tot=  9.64R pf=1.89 dd=-3.87
+R1 Classic breakout    RR2.5 ALL       n= 51 win= 49.0% tot= 12.53R pf=1.46 dd=-10.62 fullTP=14
+
+R1 Classic breakout    RR3.0 xyz_GOLD  n= 28 win= 46.4% tot=  4.30R pf=1.26 dd=-8.49
+R1 Classic breakout    RR3.0 PAXG      n= 23 win= 47.8% tot=  8.18R pf=1.68 dd=-4.97
+R1 Classic breakout    RR3.0 ALL       n= 51 win= 47.1% tot= 12.48R pf=1.44 dd=-9.60 fullTP=10
+
+R5 RSI divergence      RR2.5 xyz_GOLD  n=  8 win= 75.0% tot=  5.20R pf=3.39 dd=-1.46
+R5 RSI divergence      RR2.5 PAXG      n=  8 win= 75.0% tot=  5.88R pf=3.71 dd=-1.49
+R5 RSI divergence      RR2.5 ALL       n= 16 win= 75.0% tot= 11.09R pf=3.55 dd=-2.94 fullTP=5
+
+R5 RSI divergence      RR3.0 xyz_GOLD  n=  8 win= 62.5% tot=  1.09R pf=1.34 dd=-1.46
+R5 RSI divergence      RR3.0 PAXG      n=  8 win= 62.5% tot=  2.21R pf=1.68 dd=-1.49
+R5 RSI divergence      RR3.0 ALL       n= 16 win= 62.5% tot=  3.30R pf=1.51 dd=-2.94 fullTP=1
+
