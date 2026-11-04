@@ -1,0 +1,81 @@
+GC=F H1, 28.8 months. Patterns with >=20 trades, sorted by profit factor
+
+Pattern             Filter       RR    n  /bln  Win%    PF    TotR     DD  PF per half-year (good halves)
+MorningEveningStar  trend       3.0  116   4.0    41  1.44   36.63  -7.49  1.27 1.42 1.33 1.85 1.23  (5/5)
+MorningEveningStar  trend       2.5  118   4.1    43  1.36   29.45  -8.33  1.11 1.85 1.16 1.53 1.33  (5/5)
+MorningEveningStar  trend+loc   2.5   34   1.2    41  1.31    7.20  -6.46  1.98 1.00 2.00 0.39 1.94  (4/5)
+MorningEveningStar  trend+loc   3.0   34   1.2    38  1.14    3.48  -5.96  2.03 0.49 1.78 0.46 1.83  (3/5)
+InsideBarBreak      loc         3.0   60   2.1    37  1.06    2.50 -15.81  1.01 1.51 1.97 0.22 1.64  (4/5)
+MorningEveningStar  none        3.0  208   7.2    35  1.05    8.74 -14.92  0.00 1.62 0.81 0.91 1.34 0.70  (2/6)
+Engulfing           trend+loc   2.5   71   2.5    34  1.01    0.30 -10.04  0.98 1.51 1.31 0.96 0.00  (2/5)
+InsideBarBreak      trend+loc   3.0   31   1.1    35  0.99   -0.28  -8.80  0.15 1.86 2.45 0.37 0.42  (2/5)
+MorningEveningStar  none        2.5  217   7.5    36  0.97   -4.71 -27.25  0.00 1.40 0.89 0.80 1.11 0.76  (2/6)
+ThreeSoldiersCrows  none        2.5   98   3.4    41  0.96   -2.15  -9.78  inf 0.68 1.34 0.78 0.97 0.97  (2/6)
+ThreeSoldiersCrows  none        3.0   97   3.4    41  0.96   -2.30 -11.91  inf 0.73 1.64 0.75 0.78 0.90  (2/6)
+Engulfing           trend       3.0  377  13.1    32  0.95  -15.92 -44.02  0.00 1.04 0.68 1.12 1.05 0.92  (3/6)
+InsideBarBreak      loc         2.5   61   2.1    36  0.93   -2.97 -15.81  0.87 1.17 1.67 0.22 2.03  (3/5)
+ThreeSoldiersCrows  trend       3.0   75   2.6    40  0.92   -3.44 -12.76  0.60 1.50 1.14 0.51 0.82  (2/5)
+ThreeSoldiersCrows  trend       2.5   75   2.6    40  0.91   -3.54 -12.07  0.60 1.35 1.20 0.58 0.86  (2/5)
+InsideBarBreak      trend+loc   2.5   31   1.1    35  0.91   -1.91  -8.80  0.15 1.63 2.02 0.31 1.03  (3/5)
+Engulfing           trend       2.5  394  13.7    34  0.90  -32.39 -34.54  0.00 0.94 0.83 1.03 0.92 0.77  (1/6)
+Engulfing           trend+loc   3.0   71   2.5    28  0.89   -6.01 -13.49  0.91 0.99 1.43 0.85 0.00  (1/5)
+InsideBarBreak      none        2.5  360  12.5    34  0.89  -30.25 -51.59  1.30 0.69 0.85 0.83 1.29 0.90  (2/6)
+Marubozu            none        3.0  104   3.6    37  0.89   -7.63 -17.31  1.06 1.38 0.61 0.60 1.09  (3/5)
+MorningEveningStar  loc         3.0   94   3.3    33  0.84  -12.05 -18.34  0.00 1.22 0.68 1.02 0.53 0.99  (2/6)
+MorningEveningStar  loc         2.5   96   3.3    33  0.83  -13.27 -19.77  0.00 1.11 0.81 1.02 0.44 0.94  (2/6)
+InsideBarBreak      trend       2.5  277   9.6    32  0.82  -39.77 -50.16  0.00 0.64 0.66 0.99 1.21 0.77  (1/6)
+InsideBarBreak      none        3.0  343  11.9    29  0.81  -54.22 -70.29  1.09 0.53 0.75 0.91 1.07 0.88  (2/6)
+Engulfing           none        3.0  517  18.0    29  0.80  -86.01 -93.07  2.18 0.93 0.80 0.83 0.65 0.80  (1/6)
+Marubozu            none        2.5  106   3.7    36  0.80  -14.85 -19.48  0.98 1.20 0.52 0.57 0.93  (1/5)
+PinBar              trend       3.0  417  14.5    28  0.79  -79.98 -84.02  0.65 0.83 0.88 1.00 0.57  (1/5)
+Engulfing           none        2.5  557  19.4    31  0.76 -109.16-121.00  1.76 0.81 0.83 0.78 0.63 0.75  (1/6)
+InsideBarBreak      trend       3.0  265   9.2    28  0.75  -54.42 -60.19  0.00 0.49 0.61 1.12 1.05 0.66  (2/6)
+PinBar              none        3.0  645  22.4    27  0.74 -156.55-164.76  inf 0.49 0.91 0.77 0.86 0.71  (1/6)
+Engulfing           loc         2.5  203   7.1    30  0.73  -44.56 -46.83  0.60 1.30 0.68 0.39 0.76  (1/5)
+Tweezer             trend+loc   2.5   71   2.5    31  0.72  -18.39 -20.64  0.60 0.61 1.30 0.76 0.45  (1/5)
+PinBar              trend       2.5  436  15.2    30  0.72 -109.44-116.98  0.57 0.78 0.71 0.90 0.62  (0/5)
+PinBar              trend+loc   2.5   84   2.9    31  0.71  -20.61 -24.87  0.45 0.96 0.34 1.72 0.71  (1/5)
+Marubozu            trend       3.0   84   2.9    32  0.70  -17.90 -22.54  0.73 1.47 0.13 0.68 0.86  (1/5)
+Engulfing           loc         3.0  199   6.9    26  0.70  -50.38 -53.16  0.45 1.33 0.85 0.39 0.66  (1/5)
+PinBar              trend+loc   3.0   84   2.9    27  0.70  -22.61 -25.20  0.37 1.14 0.39 1.43 0.59  (2/5)
+Tweezer             trend       2.5  742  25.8    32  0.67 -231.89-232.63  0.00 0.49 0.55 0.87 1.03 0.59  (1/6)
+Tweezer             trend       3.0  717  24.9    28  0.67 -238.36-239.59  0.00 0.46 0.61 0.82 1.07 0.57  (1/6)
+PinBar              none        2.5  683  23.7    29  0.67 -202.33-213.04  inf 0.43 0.81 0.67 0.76 0.75  (1/6)
+Marubozu            trend       2.5   86   3.0    31  0.62  -23.62 -26.17  0.61 1.25 0.13 0.68 0.74  (1/5)
+PinBar              loc         3.0  241   8.4    24  0.62  -86.79 -91.03  0.00 0.28 0.79 0.51 0.89 0.86  (0/6)
+Tweezer             none        2.5 1086  37.8    30  0.62 -412.71-417.24  0.07 0.65 0.45 0.68 0.80 0.54  (0/6)
+Tweezer             loc         2.5  318  11.1    30  0.61 -122.32-132.75  0.17 0.78 0.54 0.59 0.69 0.51  (0/6)
+Tweezer             loc         3.0  314  10.9    25  0.59 -138.84-145.27  0.17 0.59 0.54 0.52 0.84 0.56  (0/6)
+Tweezer             none        3.0 1018  35.4    25  0.59 -448.62-454.15  0.07 0.60 0.47 0.61 0.71 0.58  (0/6)
+PinBar              loc         2.5  244   8.5    26  0.57  -96.85-102.26  0.00 0.27 0.63 0.43 0.84 0.91  (0/6)
+Tweezer             trend+loc   3.0   70   2.4    23  0.56  -31.67 -34.42  0.32 0.55 0.85 0.63 0.55  (0/5)
+Star + trend, RR3 | big=1st candle body xATR, small=middle body ratio, mid=close past x of 1st body
+big=0.4 small=0.2 mid=0.3: n= 89 pf=1.54 tot= 32.32 dd= -9.90 halves>1: 4/5
+big=0.4 small=0.2 mid=0.5: n=132 pf=1.40 tot= 37.97 dd=-13.00 halves>1: 4/5
+big=0.4 small=0.2 mid=0.7: n=184 pf=1.02 tot=  3.05 dd=-30.50 halves>1: 1/5
+big=0.4 small=0.3 mid=0.3: n=133 pf=1.48 tot= 44.35 dd=-10.97 halves>1: 4/6
+big=0.4 small=0.3 mid=0.5: n=184 pf=1.30 tot= 41.82 dd=-11.70 halves>1: 4/6
+big=0.4 small=0.3 mid=0.7: n=257 pf=0.99 tot= -1.75 dd=-27.31 halves>1: 2/6
+big=0.4 small=0.5 mid=0.3: n=196 pf=1.09 tot= 14.25 dd=-21.69 halves>1: 3/6
+big=0.4 small=0.5 mid=0.5: n=267 pf=0.95 tot=-11.07 dd=-27.92 halves>1: 3/6
+big=0.4 small=0.5 mid=0.7: n=346 pf=0.79 tot=-66.02 dd=-67.71 halves>1: 1/6
+big=0.6 small=0.2 mid=0.3: n= 44 pf=1.78 tot= 22.59 dd= -6.30 halves>1: 3/5
+big=0.6 small=0.2 mid=0.5: n= 82 pf=1.47 tot= 28.04 dd=-11.96 halves>1: 3/5
+big=0.6 small=0.2 mid=0.7: n=129 pf=0.99 tot= -1.64 dd=-35.11 halves>1: 1/5
+big=0.6 small=0.3 mid=0.3: n= 72 pf=1.65 tot= 31.37 dd= -5.89 halves>1: 4/5
+big=0.6 small=0.3 mid=0.5: n=116 pf=1.44 tot= 36.63 dd= -7.49 halves>1: 5/5
+big=0.6 small=0.3 mid=0.7: n=181 pf=1.00 tot= -0.57 dd=-21.29 halves>1: 1/5
+big=0.6 small=0.5 mid=0.3: n=113 pf=1.04 tot=  3.62 dd=-11.81 halves>1: 4/5
+big=0.6 small=0.5 mid=0.5: n=176 pf=0.97 tot= -4.79 dd=-12.85 halves>1: 1/5
+big=0.6 small=0.5 mid=0.7: n=248 pf=0.79 tot=-46.26 dd=-47.95 halves>1: 1/5
+big=0.8 small=0.2 mid=0.3: n= 22 pf=1.63 tot=  9.00 dd= -4.71 halves>1: 3/4
+big=0.8 small=0.2 mid=0.5: n= 45 pf=1.76 tot= 22.05 dd= -5.50 halves>1: 5/5
+big=0.8 small=0.2 mid=0.7: n= 79 pf=0.92 tot= -5.75 dd=-21.28 halves>1: 2/5
+big=0.8 small=0.3 mid=0.3: n= 36 pf=1.49 tot= 12.07 dd= -6.46 halves>1: 4/5
+big=0.8 small=0.3 mid=0.5: n= 64 pf=1.50 tot= 22.31 dd= -6.21 halves>1: 5/5
+big=0.8 small=0.3 mid=0.7: n=115 pf=0.97 tot= -3.29 dd=-17.16 halves>1: 1/5
+big=0.8 small=0.5 mid=0.3: n= 58 pf=1.07 tot=  2.95 dd=-10.87 halves>1: 3/5
+big=0.8 small=0.5 mid=0.5: n=104 pf=1.02 tot=  1.61 dd=-14.01 halves>1: 3/5
+big=0.8 small=0.5 mid=0.7: n=165 pf=0.86 tot=-19.82 dd=-30.71 halves>1: 3/5
+session (7, 21): n=81 pf=1.65 tot=35.68
+session (0, 24): n=116 pf=1.44 tot=36.63
