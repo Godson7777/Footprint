@@ -1,0 +1,12 @@
+
+=== 30m Hyperliquid xyz:GOLD + PAXG ===
+  same candles                       n= 40 /bln/market= 6.3 win= 32% pf=0.65 tot= -8.78R dd=-16.37
+  scaled x2 (same hours as H1)       n= 20 /bln/market= 3.2 win= 30% pf=0.48 tot= -7.61R dd= -7.61
+  H1 reference, same dates           n= 25 /bln/market= 4.0 win= 28% pf=0.37 tot=-12.14R dd=-12.14
+  H1 GC=F, same dates                n=  5 /bln/market= 1.6 win= 40% pf=0.35 tot= -2.07R dd= -2.09
+
+=== 15m Hyperliquid xyz:GOLD + PAXG ===
+  same candles                       n= 23 /bln/market= 8.0 win= 35% pf=0.77 tot= -4.26R dd=-13.69
+  scaled x4 (same hours as H1)       n=  7 /bln/market= 2.4 win= 43% pf=0.59 tot= -2.10R dd= -5.11
+  H1 reference, same dates           n= 12 /bln/market= 4.2 win= 25% pf=0.21 tot= -8.82R dd= -9.77
+  H1 GC=F, same dates                n=  2 /bln/market= 1.4 win= 50% pf=0.95 tot= -0.05R dd= -1.10

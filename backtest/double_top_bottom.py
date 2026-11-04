@@ -109,7 +109,7 @@ def run(d, r):
         sgn = 1 if side == "long" else -1
         # wait up to 24 bars for a close beyond the neckline
         brk = None
-        for k in range(i0, min(i0 + 24, len(c))):
+        for k in range(i0, min(i0 + r.get("brk_win", 24), len(c))):
             if (sgn == 1 and h[k] > ext + 0 and False):
                 break
             # pattern invalid if price makes a new extreme first
@@ -143,7 +143,7 @@ def run(d, r):
         # simulate
         start = ent_i + 1 if r["entry"] == "close_break" else ent_i
         res, exit_i = None, None
-        for k in range(start, min(start + MAX_HOLD, len(c))):
+        for k in range(start, min(start + r.get("max_hold", MAX_HOLD), len(c))):
             hit_sl = (l[k] <= sl) if sgn == 1 else (h[k] >= sl)
             hit_tp = (h[k] >= tp) if sgn == 1 else (l[k] <= tp)
             if r["entry"] == "retest" and k == ent_i:
@@ -155,7 +155,7 @@ def run(d, r):
                 res, exit_i = r["rr"], k
                 break
         if res is None:
-            exit_i = min(start + MAX_HOLD, len(c)) - 1
+            exit_i = min(start + r.get("max_hold", MAX_HOLD), len(c)) - 1
             res = (c[exit_i] - entry) * sgn / risk
         res -= 2 * FEE * entry / risk  # fees in R
         trades.append(dict(t=d["t"][ent_i], side=side, entry=entry, sl=sl, tp=tp, r=res))
