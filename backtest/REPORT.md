@@ -172,3 +172,38 @@ Double bottom LONG + bear flag SHORT + rectangle LONG (+TREND) + rising wedge SH
 - Hasil Hyperliquid 1h selama 7 bulan (PF 1,89) **terlalu optimis**. Di periode yang sama, data Binance memberi 1,36. Dalam 3,75 tahun, PF-nya 1,21.
 - **1h masih punya edge kecil di atas acak** (+0,16R per trade vs +0,01R), tapi tidak stabil: hampir semua profit datang dari 2024. Tahun 2023 dan 2025 negatif, dan PF di periode akhir < 1.
 - **15m tidak punya edge.** Hasilnya sama dengan entry acak, sama-sama rugi setelah biaya.
+
+---
+
+# XAUUSD H1 (data MT5 2015–2026) dengan RR tetap 1:2,5 dan 1:3 (v5), `gold_bt.py`
+
+**Data:** 69.877 candle H1, 2 Jan 2015 – 9 Nov 2026 (waktu server broker). H4 dibentuk dari data yang sama.
+
+**Aturan:**
+- Pola sama seperti sebelumnya, ditambah cerminannya: bull flag (long) dan double top (short).
+- Entry di open candle berikutnya. Stop 2×ATR atau struktural.
+- TP tetap 2,5R atau 3R. Trailing 3R sebagai pembanding.
+- Kalau stop dan TP kena di candle yang sama, dihitung kena stop. Kasus ini tidak terjadi sama sekali di setup terbaik.
+- **Biaya:** spread asli tiap candle (median $0,17) + slippage $0,05 saat kena stop. Swap tidak dihitung.
+
+**Win rate impas (sebelum biaya):** 28,6% untuk RR 2,5 · 25% untuk RR 3.
+
+## Hasil H1 (stop 2×ATR)
+
+| Setup | Exit | Trade | Win rate | Rata-rata | PF | PF periode akhir (2022+) | Tahun positif |
+|---|---|---|---|---|---|---|---|
+| **Double bottom long + di atas SMA200** | **TP 3R** | 77 | 37,7% | **+0,49R** | **1,77** | 2,10 | 8/12 |
+| Double bottom long + di atas SMA200 | TP 2,5R | 78 | 38,5% | +0,34R | 1,55 | 1,95 | 7/12 |
+| Double bottom long (tanpa filter) | TP 3R | 103 | 34,0% | +0,34R | 1,50 | 1,82 | 7/12 |
+| Double bottom long (tanpa filter) | TP 2,5R | 105 | 35,2% | +0,22R | 1,33 | 1,60 | 7/12 |
+| Bull flag long (stop struktural) | TP 3R | 70 | 31,4% | +0,23R | 1,33 | 2,07 | 8/12 |
+| Bear flag short | TP 2,5R / 3R | 65–82 | 16–23% | −0,23 s/d −0,44R | 0,49–0,71 | < 1 | 2–4/12 |
+| Double top short | TP 2,5R / 3R | 45–119 | 16–22% | −0,27 s/d −0,41R | 0,51–0,67 | < 1 | 1–4/12 |
+| Acak long | TP 2,5R / 3R | ~500 | 26–30% | +0,01R | 1,02–1,03 | — | 6–7/12 |
+| Acak short | TP 2,5R / 3R | ~570 | 23–26% | −0,13R | 0,83–0,85 | — | 4/12 |
+
+## Kesimpulan
+- **Di emas, pola short (bear flag, double top) rugi di semua variasi**, bahkan lebih buruk dari short acak. Emas berada dalam tren naik jangka panjang.
+- **Double bottom long jelas mengalahkan long acak.** Dengan filter SMA200 dan TP 3R: PF 1,77, PF 2,10 di periode 2022+, positif 8 dari 12 tahun.
+- **TP 3R lebih baik dari 2,5R** di setup terbaik.
+- **Sampelnya kecil:** sekitar 6–7 trade per tahun di H1. H4 terlalu sedikit (5–21 trade) untuk disimpulkan.
