@@ -47,7 +47,9 @@ DB_VARIANTS = [("baseline", {}),
                # combinations chosen on 4H results, validated on 1H / 1D
                ("COMBO tol0.25+higher", {"tol": 0.25, "higher_low": True}),
                ("COMBO tol0.25+vol", {"tol": 0.25, "vol": 1.5}),
-               ("COMBO tol0.25+higher+vol", {"tol": 0.25, "higher_low": True, "vol": 1.5})]
+               ("COMBO tol0.25+higher+vol", {"tol": 0.25, "higher_low": True, "vol": 1.5}),
+               ("ROBUST higher+vol", {"higher_low": True, "vol": 1.5}),
+               ("ROBUST higher+vol+trend", {"higher_low": True, "vol": 1.5, "trend": True})]
 BF_VARIANTS = [("baseline", {}),
                ("pole >= 3 ATR", {"pole": 3.0}), ("pole >= 5 ATR", {"pole": 5.0}),
                ("pause <= 8 bars", {"pause_max": 8}), ("retrace <= 38%", {"retrace": 0.38}),
@@ -58,7 +60,11 @@ BF_VARIANTS = [("baseline", {}),
                # combinations chosen on 4H results, validated on 1H / 1D
                ("COMBO pause8+retr38", {"pause_max": 8, "retrace": 0.38}),
                ("COMBO pause8+retr38+struct", {"pause_max": 8, "retrace": 0.38, "stop": "struct"}),
-               ("COMBO retr38+vol+struct", {"retrace": 0.38, "vol": 1.5, "stop": "struct"})]
+               ("COMBO retr38+vol+struct", {"retrace": 0.38, "vol": 1.5, "stop": "struct"}),
+               # chosen for consistency across 1H / 4H / 1D
+               ("ROBUST pole3+trend", {"pole": 3.0, "trend": True}),
+               ("ROBUST pole3+trend+struct", {"pole": 3.0, "trend": True, "stop": "struct"}),
+               ("ROBUST pole3+trend+TP3", {"pole": 3.0, "trend": True, "exit": "TP3"})]
 
 
 def rsi(c, n=14):

@@ -102,3 +102,47 @@ Double bottom LONG + bear flag SHORT + rectangle LONG (+TREND) + rising wedge SH
 | Posisi bersamaan | Maksimal 26, wajib dibatasi |
 
 **Catatan:** keempat pola ini dipilih setelah melihat hasilnya (seleksi post-hoc). Perlu forward test sebelum dipakai dengan uang sungguhan.
+
+---
+
+# Eksplorasi aturan: double bottom & bear flag + counter position (v3), `explore_bt.py`
+
+**Data**
+- H1: 196 pair, 15 Apr – 9 Nov 2026. API Hyperliquid hanya menyimpan 5000 candle terakhir, jadi H1 hanya sekitar 7 bulan.
+- 4H: Jul 2024 – Nov 2026.
+- 1D: 2023 – Nov 2026.
+
+**Metode:** mulai dari aturan dasar, lalu ubah **satu aturan per satu**. Kombinasi dipilih di 4H, lalu divalidasi di H1 dan 1D.
+
+**Pembanding (entry acak, profit factor):**
+
+| Timeframe | Long | Short |
+|---|---|---|
+| H1 | 0,88 | 0,94 |
+| 4H | 0,66 | 1,29 |
+| 1D | 0,70 | 0,89 |
+
+## Temuan
+- **Kombinasi terbaik di 4H tidak lolos validasi.**
+  - Double bottom toleransi 0,25 + dasar kedua lebih tinggi: PF 1,91 di 4H, tapi 1,03 di H1.
+  - Bear flag jeda ≤ 8 + retrace ≤ 38%: PF 4,86 di 4H, tapi 1,05 di H1 dan 0,85 di 1D.
+  - Artinya aturan-aturan itu cocok dengan kebetulan di data 4H (overfit).
+- **Lolos di ketiga timeframe (mengalahkan acak di semuanya):**
+
+| Setup | H1 PF (n) | 4H PF (n) | 1D PF (n) |
+|---|---|---|---|
+| **Bear flag: pole ≥ 3 ATR + harga < SMA200** (short) | **1,89** (75) · OOS 2,15 | **1,51** (101) · OOS 1,84 | 1,66 (23) |
+| Double bottom: dasar kedua lebih tinggi + volume ≥ 1,5× (long) | 1,24 (82) · OOS 0,68 | 1,33 (87) · OOS 2,09 | 1,59 (12) |
+
+- **Counter position (balik arah setelah breakout gagal): tidak direkomendasikan.**
+
+| Counter untuk | H1 PF | 4H PF | 1D PF |
+|---|---|---|---|
+| Double bottom gagal (SAR / CONFIRM) | 0,76 / 0,83 | 0,77 / 0,72 | 3,07 / 4,44 (n = 29 / 7) |
+| Bear flag gagal (SAR / CONFIRM) | 1,23 / 1,72 (n = 25 / 14) | 0,25 / 0,00 | 0,41 / 0,87 |
+
+  Hasilnya tidak konsisten antar timeframe. Satu-satunya angka bagus berasal dari sampel yang sangat kecil.
+- **Exit:** tidak ada exit yang selalu menang.
+  - Trailing tertinggal 3R (aturan kamu) terbaik untuk bear flag di 4H.
+  - TP tetap 3R lebih stabil di 1D.
+  - T2 (breakeven di 2R) tidak lebih baik.
