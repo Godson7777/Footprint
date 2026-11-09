@@ -76,9 +76,9 @@ def signals(df, f, pattern, vol_filter, trend_filter, rng=None, p_rand=0.0):
     if pattern == "DONCHIAN":
         L, S = c > f.dh20, c < f.dl20
     elif pattern == "SQUEEZE":
-        L, S = f.squeeze & (c > f.dh20), f.squeeze & (c < f.dl20)
+        L, S = f["squeeze"] & (c > f.dh20), f["squeeze"] & (c < f.dl20)
     elif pattern == "BASE":
-        L, S = f.base & (c > f.dh30), f.base & (c < f.dl30)
+        L, S = f["base"] & (c > f.dh30), f["base"] & (c < f.dl30)
     elif pattern == "RANDOM":
         r = rng.random(len(df))
         L = pd.Series(r < p_rand / 2, index=df.index)
