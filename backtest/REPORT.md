@@ -146,3 +146,29 @@ Double bottom LONG + bear flag SHORT + rectangle LONG (+TREND) + rising wedge SH
   - Trailing tertinggal 3R (aturan kamu) terbaik untuk bear flag di 4H.
   - TP tetap 3R lebih stabil di 1D.
   - T2 (breakeven di 2R) tidak lebih baik.
+
+---
+
+# Bear flag di timeframe rendah dengan data Binance (v4), `bf_lowtf.py`
+
+**Kenapa Binance?** API Hyperliquid hanya menyimpan 5000 candle terakhir: 1h ≈ 7 bulan, 15m ≈ 52 hari. Arsip publik Binance Futures (data.binance.vision) punya candle **1h dan 15m dari Jan 2023 – Okt 2026** untuk 214 dari 235 koin Hyperliquid.
+- Aturan, entry, stop, trailing dan **biaya Hyperliquid** dibuat sama persis.
+- Detektor vectorized sudah diverifikasi menghasilkan sinyal **identik** dengan detektor lama di 196 koin HL 1h.
+- Filter likuiditas: rata-rata volume harian Binance ≥ $50 juta. Dites juga $20 juta dan $100 juta.
+
+## Hasil (setup ROBUST: pole ≥ 3 ATR + di bawah SMA200)
+
+| Data | Trade | Win rate | Rata-rata | PF | PF periode akhir | Per tahun (R) | Acak short PF |
+|---|---|---|---|---|---|---|---|
+| **Binance 1h**, 2023–2026 | **865** | 29,4% | +0,16R | **1,21** | 0,88 | 2023 −63 · 2024 +188 · 2025 −15 · 2026 +24 | 1,01 |
+| Binance 1h, TP 3R | 888 | 32,9% | +0,22R | 1,30 | 0,91 | 2023 −60 · 2024 +218 · 2025 +6 · 2026 +29 | 1,01 |
+| **Binance 15m**, 2023–2026 | 2275 | 23,3% | −0,07R | **0,92** | 0,77 | rugi di 3 dari 4 tahun | 0,90 |
+| Hyperliquid 1h, Mei–Nov 2026 | 75 | 38,7% | +0,57R | 1,89 | 2,46 | — | 0,72 |
+| Binance 1h, **periode yang sama** (Mei–Nov 2026) | 71 | 33,8% | +0,29R | 1,36 | — | — | — |
+
+**Sensitivitas likuiditas (Binance 1h, ROBUST):** PF 1,22 (≥ $20 juta, 1315 trade) · 1,21 (≥ $50 juta) · 1,19 (≥ $100 juta). Entry acak selalu sekitar 1,00.
+
+## Kesimpulan
+- Hasil Hyperliquid 1h selama 7 bulan (PF 1,89) **terlalu optimis**. Di periode yang sama, data Binance memberi 1,36. Dalam 3,75 tahun, PF-nya 1,21.
+- **1h masih punya edge kecil di atas acak** (+0,16R per trade vs +0,01R), tapi tidak stabil: hampir semua profit datang dari 2024. Tahun 2023 dan 2025 negatif, dan PF di periode akhir < 1.
+- **15m tidak punya edge.** Hasilnya sama dengan entry acak, sama-sama rugi setelah biaya.

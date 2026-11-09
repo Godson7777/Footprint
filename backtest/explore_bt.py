@@ -189,6 +189,8 @@ def simulate(ctx, sigs, p, interval, liquid):
                 continue
         else:
             R = (1.5 if p["stop"] == "atr1.5" else 2.0) * atr[i]
+        if not (np.isfinite(R) and R > 0):
+            continue
         t = run_trade(ctx, i + 1, side, entry - side * R, R, p["exit"], interval)
         t["role"] = "main"
         out.append(t)
